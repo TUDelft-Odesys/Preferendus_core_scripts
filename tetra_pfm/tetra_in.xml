@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Model Name="Case linear optimum vicinity" PFM_XML_Version="2.0">
+  <DecisionMaker Name="Default User" Type="2" Hash="">
+    <Comment />
+  </DecisionMaker>
+  <Alternative Name="RefA1" Type="1">
+    <Comment />
+  </Alternative>
+  <Alternative Name="RefA2" Type="1">
+    <Comment />
+  </Alternative>
+  <Alternative Name="A1" Type="0">
+    <Comment />
+      </Alternative>
+  <Alternative Name="A2" Type="0">
+    <Comment />
+      </Alternative>
+  <Alternative Name="A3" Type="0">
+    <Comment />
+      </Alternative>
+  <Criterion Name="Criteria" IsPreferenceIncreasing="1">
+    <Comment />
+    <Criterion Name="C1" IsPreferenceIncreasing="1">
+      <Comment />
+      <Measurement Name="Ratings" Type="0" DecisionMaker="Default User" SubType="0">
+        <Comment />
+      <RulerValue Name="A1" Value="94.93995521059841" />
+        <RulerValue Name="A2" Value="95.33325331767281" />
+        <RulerValue Name="A3" Value="95.0296656514955" />
+      </Measurement>
+    </Criterion>
+    <Criterion Name="C2" IsPreferenceIncreasing="1">
+      <Comment />
+      <Measurement Name="Ratings" Type="0" DecisionMaker="Default User" SubType="0">
+        <Comment />
+      <RulerValue Name="A1" Value="22.82421875" />
+        <RulerValue Name="A2" Value="21.8740234375" />
+        <RulerValue Name="A3" Value="23.0009765625" />
+      </Measurement>
+    </Criterion>
+    <Criterion Name="C3" IsPreferenceIncreasing="1">
+      <Comment />
+      <Measurement Name="Ratings" Type="0" DecisionMaker="Default User" SubType="0">
+        <Comment />
+      <RulerValue Name="A1" Value="97.3297119140625" />
+        <RulerValue Name="A2" Value="97.55757649739583" />
+        <RulerValue Name="A3" Value="98.39986165364583" />
+      </Measurement>
+    </Criterion>
+    <Measurement Name="Criteria Weights" Type="1" DecisionMaker="Default User" SubType="0">
+      <Comment />
+      <RulerValue Name="C1" Value="0.6" />
+      <RulerValue Name="C2" Value="0.2" />
+      <RulerValue Name="C3" Value="0.2" />
+    </Measurement>
+  </Criterion>
+</Model>

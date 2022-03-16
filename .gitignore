@@ -1,0 +1,13 @@
+.env
+/venv/
+tetra_in.xml
+tetra_out.xml
+/Figures/
+/.pytest_cache/
+*/.pytest_cache/
+save_*.txt
+*.xlsm
+*.xlsx
+*/analysis_*/
+/notepads/
+*/.idea/*

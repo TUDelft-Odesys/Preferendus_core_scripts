@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Model Name="Case linear optimum vicinity" PFM_XML_Version="2.0">
+    <DecisionMaker Name="Default User" Type="2" Hash="">
+        <Comment></Comment>
+    </DecisionMaker>
+    <Alternative Name="RefA1" Type="1">
+        <Comment></Comment>
+    </Alternative>
+    <Alternative Name="RefA2" Type="1">
+        <Comment></Comment>
+    </Alternative>
+    <Criterion Name="Criteria" IsPreferenceIncreasing="1">
+        <Comment></Comment>
+    </Criterion>
+</Model>
