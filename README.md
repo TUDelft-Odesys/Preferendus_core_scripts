@@ -67,7 +67,7 @@ For questions, suggestions, or remarks, you can contact me by harold.van.heukelu
 
 # Closing remarks
 
-This repository is licensed under the [MIT licence](https://choosealicense.com/licenses/mit/).
+This repository is currently licensed under the [MIT licence](https://choosealicense.com/licenses/mit/).
 See [also here](https://github.com/HaroldPy11/PFM_core_scripts/blob/main/LICENSE).
 
 Copyright (c) 2022 Harold van Heukelum
