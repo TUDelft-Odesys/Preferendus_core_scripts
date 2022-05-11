@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f72d9119-d692-404a-a68b-451240542f25" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/PFM_core_scripts.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Bergen_lightrail_linear.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/tests/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/tests/test_tetra.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tetra_pfm/__main__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tetra_pfm/tests/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tetra_pfm/tests/data/test.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tetra_pfm/tests/data/test_result.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tetra_pfm/tests/test_compare_choicerobot.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tetra_pfm/tests/test_simple_check.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Example/Shopping_mall_area.py" beforeDir="false" afterPath="$PROJECT_DIR$/Shopping_mall_area.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/_constraints.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/_constraints.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/_decoder.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/_decoder.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/_nextgen.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/_nextgen.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/algorithm.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/algorithm.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/tests/test_no_constraints.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/tests/test_no_constraints.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/tests/test_non_dominance.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/tests/test_non_dominance.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genetic_algorithm_pfm/tests/test_simple_penalty.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetic_algorithm_pfm/tests/test_simple_penalty.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tetra_pfm/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tetra_pfm/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/tetra_pfm/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tetra_pfm/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/tetra_pfm/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tetra_pfm/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/tetra_pfm/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tetra_pfm/tetra_in.xml" beforeDir="false" afterPath="$PROJECT_DIR$/tetra_pfm/tetra_in.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tetra_pfm/tetra_out.xml" beforeDir="false" afterPath="$PROJECT_DIR$/tetra_pfm/tetra_out.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tetra_pfm/tetra_wrapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/tetra_pfm/tetra_wrapper.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="26TY1Nwc1p9pYUVhRcRDOEIN1MB" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="exceleditor.install" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.Bergen_lightrail_linear">
+    <configuration name="Bergen_lightrail_linear" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PFM_core_scripts" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Bergen_lightrail_linear.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Shopping_mall_area" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="PFM_core_scripts" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="net.ashald.envfile">
+        <option name="IS_ENABLED" value="false" />
+        <option name="IS_SUBST" value="false" />
+        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+        <option name="IS_IGNORE_MISSING_FILES" value="false" />
+        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+        <ENTRIES>
+          <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+        </ENTRIES>
+      </EXTENSION>
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Shopping_mall_area.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest in PFM_core_scripts" type="tests" factoryName="py.test" nameIsGenerated="true">
+      <module name="PFM_core_scripts" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="$PROJECT_DIR$/../Python_env/PFM_core_packages/bin/python" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="net.ashald.envfile">
+        <option name="IS_ENABLED" value="false" />
+        <option name="IS_SUBST" value="false" />
+        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+        <option name="IS_IGNORE_MISSING_FILES" value="false" />
+        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+        <ENTRIES>
+          <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+        </ENTRIES>
+      </EXTENSION>
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_parameters" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.Shopping_mall_area" />
+      <item itemvalue="Python tests.pytest in PFM_core_scripts" />
+      <item itemvalue="Python.Bergen_lightrail_linear" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.Bergen_lightrail_linear" />
+        <item itemvalue="Python.Shopping_mall_area" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f72d9119-d692-404a-a68b-451240542f25" name="Changes" comment="" />
+      <created>1647448826295</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1647448826295</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Initial commit">
+      <created>1647449486302</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1647449486302</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Initial commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial commit" />
+  </component>
+</project>

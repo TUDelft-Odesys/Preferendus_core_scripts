@@ -1,12 +1,18 @@
+"""
+Test function without constraints to verify the GA
+
+Source:
+        https://en.wikipedia.org/wiki/Test_functions_for_optimization#Test_functions_for_multi-objective_optimization
+"""
 import matplotlib.pyplot as plt
 from numpy import exp, sqrt, cos, pi, e, array
 from numpy.testing import assert_allclose
 
-from genetic_algorithm_pfm import genetic_algorithm
+from genetic_algorithm_pfm import GeneticAlgorithm
 
 
 def test_ackley(verbose=False):
-    """Test to see if algorithm is correct"""
+    """Test to see if algorithm is correct. runs automatically via pytest."""
 
     def test_objective(x):
         """Ackley function. Minimal at x,y = 0,0 for 5 < x,y < 5"""
@@ -25,12 +31,12 @@ def test_ackley(verbose=False):
         'r_cross': 0.9,
         'max_stall': 32,
         'tol': 1e-15,
-        'sexes_divider': 0.85
     }
+
     sol = list()
+    ga = GeneticAlgorithm(objective=test_objective, constraints=cons, bounds=bounds, options=options)
     for _ in range(10):
-        score, decoded = genetic_algorithm(objective=test_objective, constraints=cons, bounds=bounds,
-                                           options=options, verbose=verbose, tetra=False)
+        score, decoded, _ = ga.run(verbose=verbose)
 
         assert_allclose(actual=decoded, desired=[0, 0], rtol=1e-4, atol=5e-4, err_msg='Algorithm is broken')
         sol.append(decoded)
@@ -56,7 +62,7 @@ def test_ackley(verbose=False):
 
 
 def test_rastrigin():
-    """Test to see if algorithm is correct"""
+    """Test to see if algorithm is correct. Runs automatically via pytest"""
     a = 10
     n = 6
 
@@ -88,9 +94,9 @@ def test_rastrigin():
         'sexes_divider': 0.85
     }
     sol = list()
+    ga = GeneticAlgorithm(objective=test_objective, constraints=cons, bounds=bounds, options=options)
     for _ in range(10):
-        score, decoded = genetic_algorithm(objective=test_objective, constraints=cons, bounds=bounds,
-                                           options=options, verbose=False, tetra=False)
+        score, decoded, _ = ga.run(verbose=False)
 
         assert_allclose(actual=decoded, desired=[0] * 6, rtol=1e-4, atol=5e-4, err_msg='Algorithm is broken')
         sol.append(decoded)

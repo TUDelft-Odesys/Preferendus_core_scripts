@@ -1,3 +1,8 @@
-from .algorithm import genetic_algorithm
+"""
+License tbd
 
-__version__ = '0.0.1'
+(c) Harold van Heukelum, 2022
+"""
+from .algorithm import GeneticAlgorithm
+
+__version__ = '0.2'

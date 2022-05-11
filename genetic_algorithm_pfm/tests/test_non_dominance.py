@@ -1,17 +1,19 @@
 """
-See the paper of Kuri & Quezada (1998) for the reference functions and solutions.
+Test function with non-dominance constraint handler to verify the GA. See the paper of Coello (2000) for the referenced
+functions and solutions.
 
-Sources:
-Kuri, Angel & Quezada, Carlos. (1998). A universal eclectic genetic algorithm for constrained optimization. Proceedings
-6th European Congress on Intelligent Techniques & Soft Computing, EUFIT'98.
+References:
+    Coello, C. A. C. (2000). Use of a self-adaptive penalty approach for engineering optimization problems.
+    Computers in Industry, 41(2), 113-127.
 """
 
 from numpy.random import rand
 
-from genetic_algorithm_pfm import genetic_algorithm
+from genetic_algorithm_pfm import GeneticAlgorithm
 
 
 class Colors:
+    """Class to allow for printing in color on the console"""
     OK = '\033[92m'  # GREEN
     WARNING = '\033[93m'  # YELLOW
     FAIL = '\033[91m'  # RED
@@ -19,6 +21,7 @@ class Colors:
 
 
 def objective(x):
+    """Objective from example 4 of referenced paper"""
     x1 = x[:, 0]
     x3 = x[:, 2]
     x5 = x[:, 4]
@@ -27,6 +30,7 @@ def objective(x):
 
 
 def cons_1(x):
+    """First constraint from example 4 of referenced paper"""
     x1 = x[:, 0]
     x2 = x[:, 1]
     x3 = x[:, 2]
@@ -38,6 +42,7 @@ def cons_1(x):
 
 
 def cons_2(x):
+    """Second constraint from example 4 of referenced paper"""
     x1 = x[:, 0]
     x2 = x[:, 1]
     x3 = x[:, 2]
@@ -49,6 +54,7 @@ def cons_2(x):
 
 
 def cons_3(x):
+    """Third constraint from example 4 of referenced paper"""
     x1 = x[:, 0]
     x2 = x[:, 1]
     x3 = x[:, 2]
@@ -59,6 +65,7 @@ def cons_3(x):
 
 
 def cons_4(x):
+    """Fourth constraint from example 4 of referenced paper"""
     x1 = x[:, 0]
     x2 = x[:, 1]
     x3 = x[:, 2]
@@ -69,6 +76,7 @@ def cons_4(x):
 
 
 def cons_5(x):
+    """Fifth constraint from example 4 of referenced paper"""
     x1 = x[:, 0]
     x3 = x[:, 2]
     x4 = x[:, 3]
@@ -79,6 +87,7 @@ def cons_5(x):
 
 
 def cons_6(x):
+    """Sixth constraint from example 4 of referenced paper"""
     x1 = x[:, 0]
     x3 = x[:, 2]
     x4 = x[:, 3]
@@ -93,17 +102,18 @@ cons = [['ineq', cons_1], ['ineq', cons_2], ['ineq', cons_3], ['ineq', cons_4], 
 
 
 def test_non_dominance():
+    """Function to run the test automatically via pytest"""
     options = {
-        'n_bits': 16,
+        'n_bits': 20,
         'n_iter': 500,
-        'n_pop': 250,
+        'n_pop': 500,
         'r_cross': 0.8,
         'max_stall': 35,
         'tol': 1e-15
     }
-    score, decoded= genetic_algorithm(objective=objective, constraints=cons,
-                                          bounds=bounds, cons_handler='CND', options=options, tetra=False)
-    assert score < -30760
+    ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, cons_handler='CND', options=options)
+    score, decoded, _ = ga.run()
+    assert score < -30810
 
     return score, decoded
 

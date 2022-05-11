@@ -2,7 +2,7 @@
 Code to send to and receive data from teh Tetra API endpoint. Code is an python adaptation of the Matlab code written
 by Dmitry Zhilyaev, TU Delft (D.Zhilyaev@tudelft.nl).
 
-Credentials are needed for the API. The credentials are not free to share!
+Credentials are needed for the API. The credentials are not free to share (at the moment at least).
 
 Copyright (c) Harold van Heukelum, 2021
 """
@@ -10,6 +10,7 @@ import pathlib
 import xml.etree.ElementTree as Et
 
 import urllib3
+from decouple import config, UndefinedValueError
 from numpy import array
 from requests import post
 from requests.exceptions import HTTPError
@@ -31,14 +32,17 @@ class TetraSolver:
         self.headers = {'Content-Type': 'text/xml; charset=utf-8'}
         self.url = 'https://choicerobot.com:7997/SMXWebServices/Solve.php'
 
-        # do not share these credentials outside the TU Delft
-        self.user = 'tudelft'
-        self.password = 'DGLrbwmXe1kT'
+        try:
+            self.user = config('USR_TETRA')
+            self.password = config('PWD_TETRA')
+        except UndefinedValueError:
+            print('Username and password are not found (missing .env file). Please fill them in now:')
+            self.user = input('Username: ')
+            self.password = input('Password: ')
 
     def _indent(self, elem, level=0):
         """
-        Sets correct indent for the XML file, to increase readability. Credits to Erick M. Sprengel for this method's
-        code. Source: https://bit.ly/3IpXZHP
+        Credits to Erick M. Sprengel for this method's code. Source: https://bit.ly/3IpXZHP
 
         :param elem: root of your XML file
         :param level: indent level
@@ -61,11 +65,11 @@ class TetraSolver:
 
     def _make_xml(self, w, p):
         """
-        Method to build the XML file that is sent to the Tetra server. The basis of the document is the template
-        XML document.
+        Method to build the XML file that is send to the Tetra server. The basis of the document is the template
+        document.
 
-        :param w: list of weights
-        :param p: list of corresponding populations of scores
+        :param p: Population
+        :param w: Weights
         :return: XML ElementTree
         """
 
@@ -128,8 +132,8 @@ class TetraSolver:
         Method that handles the communication with the Tetra server. Gathers xml ElementTree from method make_xml and
         returns an array with the values that are returned from Tetra.
 
-        :param w: list of weights
-        :param p: list of corresponding populations of scores
+        :param w: Weights
+        :param p: Population
         :return: Array
         """
         self.assertion_tests(w, p)

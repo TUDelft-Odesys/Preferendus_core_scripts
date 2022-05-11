@@ -1,25 +1,27 @@
-"""Scripts for constraints handling. See functions for reference to papers that describe the different methods.
+"""
+Constraint handlers for the GA
 
-Copyright (c) Harold van Heukelum, 2021
+(c) Harold van Heukelum, 2022
 """
 
-from numpy import array, zeros, multiply
+from numpy import array, zeros, multiply, ones
 
 k = 1e9
 
 
 def _static_penalty(scores, result_array):
     """
-    Source:
+    Static penalty handler for GA.
+
+    References:
     Morales, A. K., & Quezada, C. V. (1998, September). A universal eclectic genetic algorithm for constrained
     optimization. In Proceedings of the 6th European congress on intelligent techniques and soft computing
     (Vol. 1, pp. 518-522).
 
-    :param scores: List with the scores from the objective function
-    :param result_array: List with the results from the constraints calculations in function _cons_handler
-    :return: penalized scores, number of non-feasible results
-     """
-
+    :param scores: list with scores of objective evaluation
+    :param result_array: list with result from calculating the constraints
+    :return: penalized scores; number of non-feasible solutions
+    """
     scores = array(scores)
     mask_array = list()
     mask = [False, ] * len(scores)
@@ -45,16 +47,18 @@ def _static_penalty(scores, result_array):
 
 def _coello_non_dominance(scores, variables, result_array):
     """
-    Source:
-    Coello, C. A. C. (2002). Theoretical and numerical constraint-handling techniques used with evolutionary algorithms:
-    a survey of the state of the art. Computer methods in applied mechanics and engineering, 191(11-12), 1245-1287.
+    Non-dominance constraint handler.
 
-    :param scores: List with the scores from the objective function
-    :param variables: array with all decoded members of the population
-    :param result_array: List with the results from the constraints calculations in function _cons_handler
-    :return: rank of all members in the population (see paper), number of non-feasible results
+    References:
+    Coello, C. A. C. (2000). Use of a self-adaptive penalty approach for engineering optimization problems.
+    Computers in Industry, 41(2), 113-127.
+
+    :param scores: list with scores of objective evaluation
+    :param variables: list with decoded variables
+    :param result_array: list with result from calculating the constraints
+    :return: final scores (rank); number of non-feasible solutions
     """
-    rank = zeros(len(variables))
+    rank = ones(len(variables))
     mask_array = list()
     mask = [False, ] * len(variables)
     exceedance_array = list()
@@ -115,14 +119,13 @@ def _coello_non_dominance(scores, variables, result_array):
 
 def _const_handler(handler, constraints, decoded, scores):
     """
-    Initial function to handle the constraints. Calculates the results from all constraints and appends them to one
-    list: result_array. Next, the use specified constraint handler is called in which the result_array is an argument.
+    Initial function for constraint handling. Calculate results from constraints function and call the correct handler.
 
-    :param handler: simple or CND; the constraint handler the user wants to use
-    :param constraints: list with type of constraint and the constraint itself as function ([[type, function], etc.])
-    :param decoded: list with decoded members of the population
-    :param scores: list with the result from the objective function
-    :return: penalized scores, number of non-feasible results
+    :param handler: type of handler to use ('simple' or 'CND')
+    :param constraints: list with constraints and their type (format: [[type, func]])
+    :param decoded: list with decoded variables
+    :param scores: list with scores of objective evaluation
+    :return: final scores; number of non-feasible solutions
     """
     if len(constraints) == 0:
         return scores, 0
@@ -130,6 +133,7 @@ def _const_handler(handler, constraints, decoded, scores):
     result_array = list()
     for eq, func in constraints:
         assert eq == 'eq' or eq == 'ineq', "Type of constraint should be 'eq' or 'ineq'"
+        assert (callable(func)), 'Constraint function must be callable'
         result_array.append([eq, func(decoded)])
 
     if handler == 'CND':
