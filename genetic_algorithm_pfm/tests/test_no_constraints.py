@@ -31,6 +31,7 @@ def test_ackley(verbose=False):
         'r_cross': 0.9,
         'max_stall': 32,
         'tol': 1e-15,
+        'tetra': False
     }
 
     sol = list()
@@ -91,7 +92,7 @@ def test_rastrigin():
         'r_cross': 0.9,
         'max_stall': 15,
         'tol': 1e-15,
-        'sexes_divider': 0.85
+        'tetra': False
     }
     sol = list()
     ga = GeneticAlgorithm(objective=test_objective, constraints=cons, bounds=bounds, options=options)

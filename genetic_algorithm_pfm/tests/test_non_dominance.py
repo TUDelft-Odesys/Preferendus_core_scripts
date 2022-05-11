@@ -109,7 +109,8 @@ def test_non_dominance():
         'n_pop': 500,
         'r_cross': 0.8,
         'max_stall': 35,
-        'tol': 1e-15
+        'tol': 1e-15,
+        'tetra': False
     }
     ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, cons_handler='CND', options=options)
     score, decoded, _ = ga.run()

@@ -74,6 +74,7 @@ def test_objective_2(verbose=False):
         'r_cross': 0.9,
         'max_stall': 32,
         'tol': 1e-15,
+        'tetra': False
     }
 
     ga = GeneticAlgorithm(objective=objective_p2, constraints=cons_p2, bounds=bounds_p2, options=options)
@@ -112,7 +113,8 @@ def test_objective_3(verbose=False):
         'n_pop': 250,
         'r_cross': 0.85,
         'max_stall': 32,
-        'tol': 1e-15
+        'tol': 1e-15,
+        'tetra': False
     }
 
     ga = GeneticAlgorithm(objective=objective_p3, constraints=cons_p3, bounds=bounds_p3, options=options)
