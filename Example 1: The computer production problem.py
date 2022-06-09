@@ -1,11 +1,10 @@
 """
 Python code for example 1 of the addendum: the computer production problem
 """
-from scipy.optimize import minimize
-import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.patches import Polygon
+from scipy.optimize import minimize
 
 __version__ = 0.1
 

@@ -6,9 +6,9 @@ Code adapted by Harold van Heukelum
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.optimize import minimize
 
 from tetra_pfm import TetraSolver
-from scipy.optimize import minimize
 
 # create arrays for plotting continuous preference curves
 c1 = np.linspace(0, 1200000)

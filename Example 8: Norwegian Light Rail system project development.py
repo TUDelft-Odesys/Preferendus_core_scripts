@@ -2,11 +2,13 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import scipy.stats as ss
 from scipy.interpolate import pchip_interpolate
 
+from genetic_algorithm_pfm import GeneticAlgorithm
 from tetra_pfm import TetraSolver
 from weighted_minmax import aggregate_max
-from genetic_algorithm_pfm import GeneticAlgorithm
 
 
 # global information about this model
@@ -63,16 +65,16 @@ c4 = np.linspace(1.5, 5)
 
 p1_min, p1_mid, p1_max = [1300000, 4000000, 5250000]
 p2_min, p2_mid1, p2_mid2, p2_max = [7.5, 20, 35, 45]
-p3_min, p3_mid, p3_max = [350400, 500000, 1212000]
+p3_min, p3_mid, p3_max = [350400, 750000, 1212000]
 p4_min, p4_mid, p4_max = [1.5, 2, 5]
 
-p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 0], c1)
+p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], c1)
 # the preference function for the income of the municipality
 
 p2 = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], c2)
 # the preference function for the travel time for the users
 
-p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 60, 0], c3)
+p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], c3)
 # the preference function for the maintenance costs
 
 p4 = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], c4)
@@ -99,9 +101,9 @@ def objective(variables, method='tetra'):
     x1 = variables[:, 0]  # number of stops
     x2 = variables[:, 1]  # number of trains
 
-    p_1 = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 0], objective_municipality(x1, x2))
+    p_1 = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], objective_municipality(x1, x2))
     p_2 = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], objective_inhabitants(x1, x2))
-    p_3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 60, 0], objective_operator(x1, x2))
+    p_3 = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], objective_operator(x1, x2))
     p_4 = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], objective_project_team(x1))
 
     if method == 'minmax':
@@ -111,13 +113,44 @@ def objective(variables, method='tetra'):
     return ret
 
 
-# bounds setting for the 2 variables
-b1 = [3, 10]  # x1 #
-b2 = [2, 20]  # x2 # adjusted from [0,20] to [2,20] because the code cannot divide by 0
-bounds = [b1, b2]
+x_array = np.array([
+    [3, 2],
+    [3, 20],
+    [10, 2],
+    [10, 20]
+])
 
-ar = np.array([[3, 2], [3, 20], [10, 2], [10, 20]])
-print(objective(ar))
+results_p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60],
+                               objective_municipality(x_array[:, 0], x_array[:, 1]))
+results_p2 = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0],
+                               objective_inhabitants(x_array[:, 0], x_array[:, 1]))
+results_p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], objective_operator(x_array[:, 0], x_array[:, 1]))
+results_p4 = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], objective_project_team(x_array[:, 0]))
+
+alternatives = ['X1 = 3; X2= 2',
+                'X1 = 3; X2= 20',
+                'X1 = 10; X2= 2',
+                'X1 = 10; X2= 20'
+                ]
+
+data = {'Alternatives': alternatives, 'P1': np.round_(results_p1, 2), 'P2': np.round_(results_p2),
+        'P3': np.round_(results_p3), 'P4': np.round_(results_p3)}
+df = pd.DataFrame(data)
+print(df)
+print()
+
+aggregation_results = objective(x_array)
+data = {'Alternatives': alternatives, 'rank': ss.rankdata(aggregation_results, method='min'),
+        'Aggregated scores': np.round_(np.multiply(aggregation_results, -1), 2)}
+
+df = pd.DataFrame(data)
+print(df)
+print()
+
+# bounds setting for the 2 variables
+b1 = [3, 10]  # x1
+b2 = [2, 20]  # x2
+bounds = [b1, b2]
 
 if __name__ == '__main__':
     n_runs = 1
@@ -144,28 +177,29 @@ if __name__ == '__main__':
         save_array.append([decoded[0], decoded[1], sum(decoded)])
         print(f'Finished run {i + 1}')
 
-    # make dictionary with parameter settings for the GA, no changes have been made here.
-    print('Run MinMax')
-    options = {
-        'n_bits': 20,
-        'n_iter': 400,
-        'n_pop': 250,
-        'r_cross': 0.9,
-        'max_stall': 15,
-        'var_type_mixed': ['int', 'real']
-    }
+    # # make dictionary with parameter settings for the GA, no changes have been made here.
+    # print('Run MinMax')
+    # options = {
+    #     'n_bits': 20,
+    #     'n_iter': 400,
+    #     'n_pop': 500,
+    #     'r_cross': 0.9,
+    #     'max_stall': 15,
+    #     'var_type_mixed': ['int', 'real'],
+    #     'tetra': False
+    # }
 
-    save_array_mm = list()
-    ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options, args=('minmax',))
-    for i in range(n_runs):
-        print(f'Initialize run {i + 1}')
-        score, decoded, _ = ga.run()
-        print(f'Optimal result for x1 = {decoded[0]} stations and x2 = {round(decoded[1], 2)} trains')
-        save_array_mm.append([decoded[0], decoded[1], sum(decoded)])
-        print(f'Finished run {i + 1}')
+    # save_array_mm = list()
+    # ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options, args=('minmax',))
+    # for i in range(n_runs):
+    #     print(f'Initialize run {i + 1}')
+    #     score, decoded, _ = ga.run()
+    #     print(f'Optimal result for x1 = {decoded[0]} stations and x2 = {round(decoded[1], 2)} trains')
+    #     save_array_mm.append([decoded[0], decoded[1], sum(decoded)])
+    #     print(f'Finished run {i + 1}')
 
-    save_array = ar
-    save_array_mm = save_array.copy()
+    save_array = save_array
+    # save_array_mm = save_array_mm
 
     # Create figure that shows the results in the solution space, the solution space is also
     # shown in figure 3 in the report. The optimal results are determined in this model.
@@ -180,43 +214,44 @@ if __name__ == '__main__':
     ax.set_title('Solution space')
     ax.fill_between(x_fill, y_fill, color='#539ecd', label='Solution space')
     ax.scatter(np.array(save_array)[:, 0], np.array(save_array)[:, 1], label='Optimal solutions Tetra')
-    ax.scatter(np.array(save_array_mm)[:, 0], np.array(save_array_mm)[:, 1], label='Optimal solutions MinMax')
-    ax.scatter([9], [12], label='As-built', marker='1', color='r')
+    # ax.scatter(np.array(save_array_mm)[:, 0], np.array(save_array_mm)[:, 1], label='Optimal solutions MinMax',
+    #            marker='^')
+    ax.scatter([9], [12], label='As-built', marker='p', color='r')
     ax.grid()
     fig.legend()
 
     # calculate individual preference scores for the results of the GA, to plot them on the preference curves
     variable = np.array(save_array)
-    variable_mm = np.array(save_array_mm)
+    # variable_mm = np.array(save_array_mm)
 
     c1_res = objective_municipality(variable[:, 0], variable[:, 1])
     c2_res = objective_inhabitants(variable[:, 0], variable[:, 1])
     c3_res = objective_operator(variable[:, 0], variable[:, 1])
     c4_res = objective_project_team(variable[:, 0])
 
-    c1_res_mm = objective_municipality(variable_mm[:, 0], variable_mm[:, 1])
-    c2_res_mm = objective_inhabitants(variable_mm[:, 0], variable_mm[:, 1])
-    c3_res_mm = objective_operator(variable_mm[:, 0], variable_mm[:, 1])
-    c4_res_mm = objective_project_team(variable_mm[:, 0])
+    # c1_res_mm = objective_municipality(variable_mm[:, 0], variable_mm[:, 1])
+    # c2_res_mm = objective_inhabitants(variable_mm[:, 0], variable_mm[:, 1])
+    # c3_res_mm = objective_operator(variable_mm[:, 0], variable_mm[:, 1])
+    # c4_res_mm = objective_project_team(variable_mm[:, 0])
 
     c1_res_actual = objective_municipality(9, 12)
     c2_res_actual = objective_inhabitants(9, 12)
     c3_res_actual = objective_operator(9, 12)
     c4_res_actual = objective_project_team(9)
 
-    p1_res = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 0], c1_res)
+    p1_res = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], c1_res)
     p2_res = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], c2_res)
-    p3_res = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 60, 0], c3_res)
+    p3_res = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], c3_res)
     p4_res = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], c4_res)
 
-    p1_res_mm = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 0], c1_res_mm)
-    p2_res_mm = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], c2_res_mm)
-    p3_res_mm = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 60, 0], c3_res_mm)
-    p4_res_mm = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], c4_res_mm)
+    # p1_res_mm = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], c1_res_mm)
+    # p2_res_mm = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], c2_res_mm)
+    # p3_res_mm = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], c3_res_mm)
+    # p4_res_mm = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], c4_res_mm)
 
-    p1_res_actual = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 0], c1_res_actual)
+    p1_res_actual = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], c1_res_actual)
     p2_res_actual = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], c2_res_actual)
-    p3_res_actual = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 60, 0], c3_res_actual)
+    p3_res_actual = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], c3_res_actual)
     p4_res_actual = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], c4_res_actual)
 
     print(c1_res, p1_res)
@@ -228,7 +263,7 @@ if __name__ == '__main__':
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(15, 5))
 
     ax1.scatter(c1_res, p1_res, label='Optimal solutions Tetra', color='tab:purple', zorder=1)
-    ax1.scatter(c1_res_mm, p1_res_mm, label='Optimal solutions MinMax', marker='^', color='tab:orange', zorder=1)
+    # ax1.scatter(c1_res_mm, p1_res_mm, label='Optimal solutions MinMax', marker='^', color='tab:orange', zorder=1)
     ax1.scatter(c1_res_actual, p1_res_actual, label='As built', marker='p', color='r', zorder=1)
     ax1.plot(c1, p1, zorder=3)
     ax1.set_xlim((0, 5500000))
@@ -240,7 +275,7 @@ if __name__ == '__main__':
     ax1.grid()
 
     ax2.scatter(c2_res, p2_res, color='tab:purple', zorder=1)
-    ax2.scatter(c2_res_mm, p2_res_mm, marker='^', color='tab:orange', zorder=1)
+    # ax2.scatter(c2_res_mm, p2_res_mm, marker='^', color='tab:orange', zorder=1)
     ax2.scatter(c2_res_actual, p2_res_actual, marker='p', color='tab:red', zorder=1)
     ax2.plot(c2, p2, zorder=3)
     ax2.set_xlim((0, 60))
@@ -251,7 +286,7 @@ if __name__ == '__main__':
     ax2.grid()
 
     ax3.scatter(c3_res, p3_res, color='tab:purple', zorder=1)
-    ax3.scatter(c3_res_mm, p3_res_mm, marker='^', color='tab:orange', zorder=1)
+    # ax3.scatter(c3_res_mm, p3_res_mm, marker='^', color='tab:orange', zorder=1)
     ax3.scatter(c3_res_actual, p3_res_actual, marker='p', color='tab:red', zorder=1)
     ax3.plot(c3, p3, zorder=3)
     ax3.set_xlim((0, 1500000))
@@ -262,7 +297,7 @@ if __name__ == '__main__':
     ax3.grid()
 
     ax4.scatter(c4_res, p4_res, color='tab:purple')
-    ax4.scatter(c4_res_mm, p4_res_mm, marker='^', color='tab:orange')
+    # ax4.scatter(c4_res_mm, p4_res_mm, marker='^', color='tab:orange')
     ax4.scatter(c4_res_actual, p4_res_actual, marker='p', color='tab:red')
     ax4.plot(c4, p4, zorder=3)
     ax4.set_xlim((0, 7))

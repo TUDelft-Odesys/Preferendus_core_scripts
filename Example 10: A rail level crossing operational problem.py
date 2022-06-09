@@ -9,8 +9,8 @@ from scipy.interpolate import pchip_interpolate, interp2d
 from genetic_algorithm_pfm import GeneticAlgorithm
 from tetra_pfm import TetraSolver
 
-data_force = np.loadtxt('Data_force.txt', delimiter=',')
-data_acc = np.loadtxt('Data_acceleration.txt', delimiter=',')
+data_force = np.loadtxt('./data/Data_force.txt', delimiter=',')
+data_acc = np.loadtxt('./data/Data_acceleration.txt', delimiter=',')
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -54,8 +54,8 @@ p1_min, p1_mid, p1_max = [900, 2500, 6000]
 p2_min, p2_mid, p2_max = [0, 2, 5]
 p3_min, p3_mid, p3_max = [10000, 35000, 75000]
 
-p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], c1)
-p2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], c2)
+p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 45, 0], c1)
+p2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 60, 0], c2)
 p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 50, 0], c3)
 
 
@@ -100,8 +100,8 @@ def objective(variables, method='tetra'):
     riding_comfort = np.multiply(acc, 8)
     investment_costs = x2 * 5000
 
-    p_1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], maintenance_costs)
-    p_2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], riding_comfort)
+    p_1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 45, 0], maintenance_costs)
+    p_2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 60, 0], riding_comfort)
     p_3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 50, 0], investment_costs)
 
     mask_higher = p_1 > 100
@@ -135,8 +135,8 @@ if __name__ == '__main__':
     options = {
         'n_bits': 20,
         'n_iter': 400,
-        'n_pop': 500,
-        'r_cross': 0.85,
+        'n_pop': 250,
+        'r_cross': 0.8,
         'max_stall': 10,
         'tetra': True,
         'method_tetra': 1,
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     # Create figure that shows the results in the solution space, the solution space is also
     # shown in figure 3 in the report. The optimal results are determined in this model.
     x_fill = [0.3, 0.7, 0.7, 0.3]
-    y_fill = [0, 0, 15, 15]
+    y_fill = [4, 4, 15, 15]
 
     fig, ax = plt.subplots(figsize=(7, 7))
     ax.set_xlim((0, 1))
@@ -189,8 +189,8 @@ if __name__ == '__main__':
     c2_res = a * 8
     c3_res = variable[:, 1] * 5000
 
-    p1_res = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], c1_res)
-    p2_res = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], c2_res)
+    p1_res = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 45, 0], c1_res)
+    p2_res = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 60, 0], c2_res)
     p3_res = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 50, 0], c3_res)
 
     print(f)

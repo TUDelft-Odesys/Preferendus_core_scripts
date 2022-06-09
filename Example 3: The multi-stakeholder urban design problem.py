@@ -1,8 +1,8 @@
 """
 Python code for example 3 of the addendum: The multi-stakeholder urban design problem
 """
-from scipy.optimize import minimize
 import numpy as np
+from scipy.optimize import minimize
 
 __version__ = 0.1
 

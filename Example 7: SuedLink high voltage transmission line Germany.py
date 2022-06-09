@@ -1,14 +1,15 @@
 """
 Copyright (c) 2022. Harold Van Heukelum
 """
+import sys
 
-import matplotlib.pyplot as plt
 import numpy as np
-from numpy import log10, zeros, invert, array, linspace, count_nonzero, sqrt
+import pandas as pd
+import scipy.stats as ss
+from numpy import log10, zeros, invert, linspace, count_nonzero, sqrt
 from scipy.interpolate import pchip_interpolate
 from scipy.optimize import fsolve
 
-from genetic_algorithm_pfm import GeneticAlgorithm
 from tetra_pfm import TetraSolver
 from weighted_minmax import aggregate_max
 
@@ -108,6 +109,56 @@ def objective(variabels, length_overall=LOA, method='tetra'):
 
     return ret
 
+
+x_array = np.array([
+    [1, 300],
+    [1, 600],
+    [0, 300],
+    [0, 600]
+])
+
+l_u = x_array[:, 1]
+l_o = LOA - l_u
+
+c = zeros(len(x_array))
+a = zeros(len(x_array))
+t = zeros(len(x_array))
+
+mask = x_array[:, 0] == 1
+c[mask] = 0.475 * l_o[mask] + 0.580 * l_u[mask] + 375
+a[mask] = (0.170 + r_ac[0] / 1000) * l_o[mask] + 0.018 * l_u[mask]
+t[mask] = 2.5 * l_o[mask] + 2.6 * l_u[mask]
+
+mask = invert(mask)
+c[mask] = 0.120 * l_o[mask] + 0.190 * l_u[mask] + 430
+a[mask] = (0.120 + r_dc[0] / 1000) * l_o[mask] + 0.015 * l_u[mask]
+t[mask] = 1.8 * l_o[mask] + 2.3 * l_u[mask]
+
+results_p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], c)
+results_p2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], a)
+results_p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 40, 0], t)
+
+alternatives = ['AC – 400 ACO – 300 ACU',
+                'AC – 100 ACO – 600 ACU',
+                'DC – 400 DCO – 300 DCU',
+                'DC – 100 DCO – 600 DCU'
+                ]
+
+data = {'Alternatives': alternatives, 'P1': np.round_(results_p1, 2), 'P2': np.round_(results_p2),
+        'P3': np.round_(results_p3)}
+df = pd.DataFrame(data)
+print(df)
+print()
+
+aggregation_results = objective(x_array)
+data = {'Alternatives': alternatives, 'rank': ss.rankdata(aggregation_results, method='min'),
+        'Aggregated scores': np.round_(np.multiply(aggregation_results, -1), 2)}
+
+df = pd.DataFrame(data)
+print(df)
+print()
+
+sys.exit()
 
 bounds = [[0, 1], [300, 600]]
 
