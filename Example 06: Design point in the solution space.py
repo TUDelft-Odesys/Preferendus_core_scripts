@@ -2,9 +2,11 @@
 
 Code adapted by Harold van Heukelum
 """
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import gridspec
 from scipy.interpolate import pchip_interpolate
 
 from genetic_algorithm_pfm import GeneticAlgorithm
@@ -15,8 +17,8 @@ from weighted_minmax.algorithm import aggregate_max
 c1 = np.linspace(0, 2, 100)
 c2 = np.linspace(0, 2, 100)
 
-norm_1 = np.linspace(0, 1)
-norm_2 = np.linspace(0, 1)
+norm_1 = np.linspace(0, 1, 100)
+norm_2 = np.linspace(0, 1, 100)
 N1, N2 = np.meshgrid(norm_1, norm_2)
 
 p1 = 100 * (np.sqrt(N1 ** 2 + N2) ** 2)
@@ -173,18 +175,6 @@ if __name__ == '__main__':
 
     # create figure that plots all preference curves and the preference scores of the returned results of the GA
     plt.figure()
-    ax1 = plt.subplot(121, projection='3d')
-    surf = ax1.plot_surface(N1, N2, p1, label='Preference curve')
-    ax1.scatter(normalized_c1x1, normalized_c1x2, p1_res, label='Solution Tetra')
-    ax1.scatter(normalized_c1x1_mm, normalized_c1x2_mm, p1_res_mm, label='Solution MinMax', marker='*')
-    ax1.set(xlabel='Normalized travel distance', ylabel='Normalized items in assortiment', zlabel='Preference')
-    ax1.set_title('Preference Curve Shopping Added Value')
-    ax1.view_init(elev=15, azim=160)
-    surf._facecolors2d = surf._facecolor3d
-    surf._edgecolors2d = surf._edgecolor3d
-    ax1.legend()
-    ax1.grid()
-
     ax2 = plt.subplot(122)
     ax2.plot(c2, p2, label='Preference curve')
     ax2.scatter(c2_res, p2_res, label='Solution Tetra')
@@ -193,5 +183,25 @@ if __name__ == '__main__':
     ax2.set_title('Preference Curve Transport Sustainability & Wasted')
     ax2.legend()
     ax2.grid()
+
+    ax1 = plt.subplot(221, projection='3d')
+    surf = ax1.plot_surface(N1, N2, p1, label='Preference curve')
+    ax1.scatter(normalized_c1x1, normalized_c1x2, p1_res, label='Solution Tetra')
+    ax1.scatter(normalized_c1x1_mm, normalized_c1x2_mm, p1_res_mm, label='Solution MinMax', marker='*')
+    ax1.set(xlabel='Normalized travel distance', ylabel='Normalized items in assortiment', zlabel='Preference')
+    ax1.set_title('Preference Curves Shopping Added Value')
+    ax1.view_init(elev=15, azim=160)
+    surf._facecolors2d = surf._facecolor3d
+    surf._edgecolors2d = surf._edgecolor3d
+    ax1.grid()
+
+    ax3 = plt.subplot(223)
+    fig = ax3.imshow(p1, cmap='GnBu', interpolation='nearest')
+    ax3.scatter(normalized_c1x1 * 100, normalized_c1x2 * 100, label='Solution Tetra')
+    ax3.scatter(normalized_c1x1_mm * 100, normalized_c1x2_mm * 100, label='Solution MinMax', marker='*')
+    ax3.set(xlabel='Normalized travel distance', ylabel='Normalized items in assortiment')
+    ax3.grid()
+
+    plt.colorbar(fig, ax=ax3, location='left')
 
     plt.show()

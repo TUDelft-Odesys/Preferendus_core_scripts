@@ -56,25 +56,37 @@ w2 = 1 / 3
 w3 = 1 / 3
 
 
+def objective_1(x1, x2):
+    return 160 * x1 + 80 * x2
+
+
+def objective_2(x1, x2):
+    return 120 * x1 + 30 * x2
+
+
+def objective_3(x1, x2):
+    return 15 * x1 + 45 * x2
+
+
 def objective_p1(variables):
     x1 = variables[0]
     x2 = variables[1]
 
-    return -1 * (1 / 9600 * ((160 * x1 + 80 * x2) - 240000))
+    return -1 * (1 / 9600 * (objective_1(x1, x2) - 240000))
 
 
 def objective_p2(variables):
     x1 = variables[0]
     x2 = variables[1]
 
-    return -1 * (100 - (1 / 6600) * (120 * x1 + 30 * x2 - 90000))
+    return -1 * (100 - (1 / 6600) * (objective_2(x1, x2) - 90000))
 
 
 def objective_p3(variables):
     x1 = variables[0]
     x2 = variables[1]
 
-    return -1 * ((1 / 3150) * (15 * x1 + 45 * x2 - 45000))
+    return -1 * ((1 / 3150) * (objective_3(x1, x2) - 45000))
 
 
 # set bounds for all variables
@@ -107,13 +119,27 @@ result_p2 = minimize(objective_p2, np.array([1, 1]), method='SLSQP', bounds=boun
 
 result_p3 = minimize(objective_p3, np.array([1, 1]), method='SLSQP', bounds=bounds, constraints=cons)
 
-print(result_p3.x)
-results = np.zeros((3, 3))
-results[0] = [objective_p1(result_p1.x), objective_p2(result_p1.x), objective_p3(result_p1.x)]
-results[1] = [objective_p1(result_p2.x), objective_p2(result_p2.x), objective_p3(result_p2.x)]
-results[2] = [objective_p1(result_p3.x), objective_p2(result_p3.x), objective_p3(result_p3.x)]
+results = np.zeros((3, 5))
+results[0] = [result_p1.x[0], result_p1.x[1], objective_p1(result_p1.x), objective_p2(result_p1.x),
+              objective_p3(result_p1.x)]
+results[1] = [result_p2.x[0], result_p2.x[1], objective_p1(result_p2.x), objective_p2(result_p2.x),
+              objective_p3(result_p2.x)]
+results[2] = [result_p3.x[0], result_p3.x[1], objective_p1(result_p3.x), objective_p2(result_p3.x),
+              objective_p3(result_p3.x)]
 
-df = pd.DataFrame(np.round_(results, 2), columns=['Criterion 1', 'Criterion 2', 'Criterion 3'])
+values = np.zeros((3, 5))
+x_1, x_2 = result_p1.x
+values[0] = [x_1, x_2, objective_1(x_1, x_2), objective_2(x_1, x_2), objective_3(x_1, x_2)]
+x_1, x_2 = result_p2.x
+values[1] = [x_1, x_2, objective_1(x_1, x_2), objective_2(x_1, x_2), objective_3(x_1, x_2)]
+x_1, x_2 = result_p3.x
+values[2] = [x_1, x_2, objective_1(x_1, x_2), objective_2(x_1, x_2), objective_3(x_1, x_2)]
+
+df = pd.DataFrame(np.round_(values), columns=['x1', 'x2', 'Profit', 'Emission', 'Potential'])
+print(df)
+print()
+
+df = pd.DataFrame(np.round_(results), columns=['x1', 'x2', 'Profit', 'Emission', 'Potential'])
 print(df)
 
 plt.show()
