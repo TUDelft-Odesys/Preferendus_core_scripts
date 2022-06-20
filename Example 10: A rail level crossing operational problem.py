@@ -1,5 +1,4 @@
 """Credits to Harold van Heukelum for creating the code and the model"""
-
 import warnings
 
 import matplotlib.pyplot as plt
@@ -47,15 +46,15 @@ def objective_maintainance_costs(force, acc):
 
 
 c1 = np.linspace(900, 6000)  # maintenance costs
-c2 = np.linspace(0, 5)  # comfort
+c2 = np.linspace(0, 0.7)  # comfort
 c3 = np.linspace(10000, 75000)  # investment costs
 
 p1_min, p1_mid, p1_max = [900, 2500, 6000]
-p2_min, p2_mid, p2_max = [0, 2, 5]
+p2_min, p2_max = [0, 0.7]
 p3_min, p3_mid, p3_max = [10000, 35000, 75000]
 
 p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 45, 0], c1)
-p2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 60, 0], c2)
+p2 = pchip_interpolate([p2_min, p2_max], [0, 100], c2)
 p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 50, 0], c3)
 
 
@@ -97,11 +96,11 @@ def objective(variables, method='tetra'):
             acc.append(acc_array[it])
 
     maintenance_costs = objective_maintainance_costs(force, acc)
-    riding_comfort = np.multiply(acc, 8)
+    riding_comfort = 1 - np.multiply(acc, 12)
     investment_costs = x2 * 5000
 
     p_1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 45, 0], maintenance_costs)
-    p_2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 60, 0], riding_comfort)
+    p_2 = pchip_interpolate([p2_min, p2_max], [0, 100], riding_comfort)
     p_3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 50, 0], investment_costs)
 
     mask_higher = p_1 > 100
@@ -190,7 +189,7 @@ if __name__ == '__main__':
     c3_res = variable[:, 1] * 5000
 
     p1_res = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 45, 0], c1_res)
-    p2_res = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 60, 0], c2_res)
+    p2_res = pchip_interpolate([p2_min, p2_max], [0, 100], c2_res)
     p3_res = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 50, 0], c3_res)
 
     print(f)
@@ -215,7 +214,7 @@ if __name__ == '__main__':
 
     ax2.plot(c2, p2)
     ax2.scatter(c2_res, p2_res)
-    ax2.set_xlim((0, 5))
+    ax2.set_xlim((0, 0.7))
     ax2.set_ylim((0, 100))
     ax2.set_title('Travel Comfort')
     ax2.set_xlabel(r'Travel Comfort [$m/s^2$]')
