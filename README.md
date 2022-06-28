@@ -10,8 +10,8 @@ the repository.
 
 You can download this repository:
 
-- Via the terminal: git clone https://github.com/TUDelft-Odesys/Preferendus_core_scripts.git;
-- By downloading the zip-file via the button 'Code' --> Download ZIP.
+- Via the terminal: `git clone https://github.com/TUDelft-Odesys/Preferendus_core_scripts.git`
+- By downloading the zip-file via the button 'Code' --> Download ZIP
 
 ## Objective function
 
@@ -39,13 +39,13 @@ GeneticAlgorithm(*args)` in your script. It takes the following arguments (`*arg
   Non-Dominance handler. The latter is better for highly constraint problems. See source code for the papers in which
   the handlers are described. NB. handlers are only limited tested for equality constraints!
 - **options:** dictionary that contain the parameters of the GA:
-    - n_bits: number of bits in bit string (default: 24);
-    - n_iter: maximal number of iterations (default: 400);
-    - n_pop: population size (default: 500);
-    - r_cross: cross-over rate (default: 0.85);
-    - max_stall: maximal generation with no improvements before the GA stops (default: 15);
-    - tol: improvement smaller than this value is neglected by the GA (default: 1e-15);
-    - tetra: should be true when using the GA in combination with Tetra, to allow for correct assessment. True by default.
+    - n_bits: number of bits in bit string;
+    - n_iter: maximal number of iterations;
+    - n_pop: population size;
+    - r_cross: cross-over rate;
+    - max_stall: maximal generation with no improvements before the GA stops;
+    - tol: improvement smaller than this value is neglected by the GA ;
+    - tetra: should be true when using the GA in combination with Tetra, to allow for correct assessment.
     - var_type: type of variable ('real', 'int', 'bool'). Leave undefined when you have a mixed-integer problem! Default type is 'real'.
     - var_type_mixed: list with the types of your variables. Length is equal to the number of variables. Type can either be 'real', 'int' or 'bool'.
 
@@ -70,7 +70,7 @@ For questions, suggestions, or remarks, you can contact me by harold.van.heukelu
 
 # Closing remarks
 
-This repository is currently licensed under the [MIT licence](https://choosealicense.com/licenses/mit/).
-See [also here](https://github.com/HaroldPy11/PFM_core_scripts/blob/main/LICENSE).
+This repository is currently licensed under the [GNU General Public License v3.0](https://choosealicense.com/licenses/gpl-3.0/).
+See [also here](https://github.com/TUDelft-Odesys/Preferendus_core_scripts/blob/main/LICENSE).
 
 Copyright (c) 2022 Harold van Heukelum
