@@ -10,7 +10,7 @@ the repository.
 
 You can download this repository:
 
-- Via the terminal: git clone https://github.com/HaroldPy11/PFM_core_scripts.git;
+- Via the terminal: git clone https://github.com/TUDelft-Odesys/Preferendus_core_scripts.git;
 - By downloading the zip-file via the button 'Code' --> Download ZIP.
 
 ## Objective function
