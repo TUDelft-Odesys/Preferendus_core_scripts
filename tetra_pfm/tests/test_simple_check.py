@@ -13,8 +13,7 @@ HERE = pathlib.Path(__file__).parent
 
 def test_check_new_tetra():
     """
-    Test to see if the TetraSolver is accurate up to 3 digits. The comparison is made to the 'verified' result of
-    the Matlab code. Trows AssertionError when the result is not the same.
+    Test to see if the Tetra algorithms is still behaving as expected. Trows AssertionError when this is not the case.
 
     :return: None
     """

@@ -29,7 +29,8 @@ class _Decoding:
 
     def decode(self, member):
         """
-        Decode member of population
+        Decode member of population. Only real valued members are stored as bitstrings. Hence, all other types are
+        returned directly.
 
         :param member: member of population
         :return: list with decoded variables

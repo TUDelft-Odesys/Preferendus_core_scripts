@@ -1,31 +1,68 @@
 """
-Python code for example 1 of the addendum: the computer production problem
+Python code for the computer production problem example
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
 from scipy.optimize import minimize
 
-__version__ = 0.1
+"""
+In this example we will use the scipy.optimize.minimize function to search for the optimal number of computers of each 
+type the company should produce to maximize profit. Since this is a rather simple, linear problem, we can use a simple 
+and fast solver like the one provided with scipy.
+
+To be able to optimize, we need to define the objective as an python function. Similar we need to define a function for 
+the constraint. This is done below, after which the optimization is performed on line 43 and the result is stored to the
+variable 'result. This optimal result is also printed on line 56-59.'
+
+For documentation on scipy.optimize.minimize please see the website of scipy or use the help() function.
+"""
 
 
 def objective(variables):
+    """
+    Objective function to maximize the profit. Note that the returned value is multiplied by -1. This is since we use a
+    minimization algorithm.
+
+    :param variables: list with design variable values
+    """
     x1, x2 = variables
     return -1 * (300 * x1 + 500 * x2)
 
 
 def constraint(variables):
+    """
+    Constraint for optimization problem
+
+    :param variables: list with design variable values
+    """
     x1, x2 = variables
     return -1 * x1 - 2 * x2 + 120
 
 
-result = minimize(objective, np.array([1, 1]), method='SLSQP', bounds=((0, 60), (0, 50)),
+result = minimize(fun=objective, x0=np.array([1, 1]), method='SLSQP', bounds=((0, 60), (0, 50)),
                   constraints={'type': 'ineq', 'fun': constraint})
+
+"""
+Explanation of arguments:
+
+fun: function to minimize, here: objective function
+x0: initial guesses for the design variables x1 and x2
+method: optimization method. The specified method allows for both bounds and constraints.
+bounds: boundary values for design variables x1 and x2
+constraints: dictionary that contains the type of constraint and the constraint function.
+"""
 
 print(f'The optimal solution is for producing {round(result.x[0])} basic computers and '
       f'{round(result.x[1])} advanced computers.')
 
 print(f'This will result in a profit of €{round(-1 * result.fun, 2)}')
+
+"""
+The solution of this example can also be found graphically. This figure is created below. You are not required to 
+understand the code below, so it is not annotated further.
+"""
 
 fig, ax = plt.subplots(figsize=(8, 6))
 ax.grid()

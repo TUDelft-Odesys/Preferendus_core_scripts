@@ -89,11 +89,11 @@ class GeneticAlgorithm:
         self.tetra = options.get('tetra', True)
 
         ####################################################################################
-        # assert if important input are correct
+        # assert if important input is correct
         assert (callable(objective)), 'Objective must be callable'
         self.objective = objective
 
-        assert self.n_pop % 2 == 0, 'N_pop must be even'
+        assert self.n_pop % 2 == 0, 'N_pop must be even'  # needed for elitism
 
         assert 0 < self.r_cross < 1, 'Crossover rate r_cross should be between 0 and 1'
 
@@ -147,21 +147,21 @@ class GeneticAlgorithm:
         """
         ####################################################################################
         # create initial (random) population
-        r_count = 0
-        pop = list([0] * self.n_pop)
+        r_count = 0  # r_count is used to determine mutation rate
+        pop = list([0] * self.n_pop)  # initialize list for population
         for p in range(len(pop)):
-            solo = list([0] * len(self.bounds))
+            solo = list([0] * len(self.bounds))  # initialize list for variables
             for i in range(len(solo)):
-                if self.approach[i] == 'int':
+                if self.approach[i] == 'int':  # if variable is integer
                     solo[i] = randint(self.bounds[i][0], self.bounds[i][1] + 1)
                     r_count += 1
-                elif self.approach[i] == 'bool':
+                elif self.approach[i] == 'bool':  # if variable is boolean
                     solo[i] = randint(0, 2)
                     r_count += 1
-                else:
+                else:  # if variable is real valued
                     solo[i] = randint(0, 2, self.n_bits).tolist()
                     r_count += self.n_bits
-            pop[p] = solo.copy()
+            pop[p] = solo.copy()  # don't forget .copy(), otherwise your population will be wrong
 
         ####################################################################################
         # set initial best and best_eval
@@ -169,16 +169,16 @@ class GeneticAlgorithm:
         best = pop[randint(0, len(pop))]  # select random member of pop as initial best guess
 
         # set initial parameters
-        stall_counter = 0
-        gen = 0
-        tic = perf_counter()
-        plot_array = list()
-        check_array_complete = list()
-        check_array_complete_bits = list()
-        t = 1 / sqrt(r_count)
-        r_mut = t
+        stall_counter = 0  # used to keep track of nr of generations that have no improvement
+        gen = 0  # generation number
+        tic = perf_counter()  # start counter for runtime
+        check_array_complete = list()  # list in which the best result of the generation is saved to check in Tetra
+        check_array_complete_bits = list()  # dito, only now in bitstring format
 
-        # call decoding class
+        t = 1 / sqrt(r_count)  # mutation rate parameter
+        r_mut = t  # mutation rate
+
+        # call decoding class from _decoder.py
         dec = _Decoding(bounds=self.bounds, n_bits=self.n_bits, approach=self.approach)
 
         # print headers for console output of algorithm
@@ -190,7 +190,7 @@ class GeneticAlgorithm:
 
         # loop through generations
         for gen in range(self.n_iter):
-            best_eval_old = best_eval
+            best_eval_old = best_eval  # set previous best result for check later on
 
             # decode population. Should be np.array to make masks possible
             decoded = array([dec.decode(p) for p in pop])
@@ -198,7 +198,7 @@ class GeneticAlgorithm:
             # check diversity:
             check_div = round(max(unique(decoded, return_counts=True)[1]) / (len(pop) * len(pop[0])), 3)
 
-            # evaluate all candidates in the population
+            # evaluate all candidates in the population against object and constraints
             scores = self.objective(decoded, *self.args)
             scores_feasible, length_cons = _const_handler(self.cons_handler, self.constraints, decoded, scores)
 
@@ -211,30 +211,32 @@ class GeneticAlgorithm:
                                                                              round(float(mean(scores_feasible)), 4),
                                                                              stall_counter, check_div, length_cons))
 
-            # check for new best solution; print current bests and stall counter to console
+            # the evaluation of the generation is done differently when Tetra is used.
             if self.tetra:
+                # append the best solution of current generation to list with best scores of all generation
                 check_array_complete_bits.append(pop[where(array(scores_feasible) ==
                                                            min(scores_feasible))[0][0]])
                 check_array_complete.append(decoded[where(array(scores_feasible) ==
                                                           min(scores_feasible))[0][0]].tolist())
+
+                # evaluate list with all the best results against the objective
                 result = self.objective(array(check_array_complete), *self.args)
                 assert len(
                     check_array_complete) == gen + 1, f'Error: len check_array {len(check_array_complete)} != ' \
                                                       f'gen nr + 1 {gen + 1}'
 
-                if result[-1] <= min(result):
+                if result[-1] <= min(result):  # see if current generation is an improvement
                     best_eval = min(scores_feasible)
                     best = pop[where(array(scores_feasible) == min(scores_feasible))[0][0]]
-                    plot_array.append(decoded[where(array(scores_feasible) == min(scores_feasible))[0][0]])
                 else:
                     best_eval = min(result)
                     best = check_array_complete_bits[where(array(result) == min(result))[0][0]]
-                    plot_array.append(decoded[where(array(scores_feasible) == min(scores_feasible))[0][0]])
 
+                # round result array so 99.999999 --> 100.
                 result = array(round_(result, 3))
 
                 if -100.0 in result:
-                    stall_counter = count_nonzero(result == -100.)
+                    stall_counter = count_nonzero(result == -100.)  # stall counter = num of 100 scores in result array
                 else:
                     stall_counter = 1
 
@@ -244,11 +246,10 @@ class GeneticAlgorithm:
                     stall_counter = 0
                     best_eval = min(scores_feasible)
                     best = pop[where(array(scores_feasible) == min(scores_feasible))[0][0]]
-                    plot_array.append(decoded[where(array(scores_feasible) == min(scores_feasible))[0][0]])
                 if abs(best_eval_old - best_eval) < self.tol:
                     stall_counter += 1
 
-            print_status()
+            print_status()  # print intermittent result to console
             if stall_counter >= self.max_stall:
                 if verbose:
                     print(f'Stopped at gen {gen}')
@@ -260,31 +261,27 @@ class GeneticAlgorithm:
             # create the next generation
             children = [best, best]  # elitism
 
-            i = -1
-            r_mut = r_mut * exp(t * normal(0, 1))
-            try:
-                for i in range(0, len(selected), 2):
-                    # get selected parents in pairs
-                    p1, p2 = selected[i], selected[i + 1]
+            r_mut = r_mut * exp(t * normal(0, 1))  # set net mutation rate
+            for i in range(0, len(selected), 2):
+                # get selected parents in pairs
+                p1, p2 = selected[i], selected[i + 1]
 
-                    # crossover and mutation
-                    for c in _crossover(p1, p2, self.r_cross, self.approach):
-                        # mutation
-                        _mutation(c, r_mut, self.approach, self.bounds)
+                # crossover and mutation
+                for c in _crossover(p1, p2, self.r_cross, self.approach):
+                    # mutation
+                    _mutation(c, r_mut, self.approach, self.bounds)
 
-                        # store for next generation
-                        children.append(c)
-            except IndexError as err:
-                print(i)
-                raise err
+                    # store for next generation
+                    children.append(c)
 
             # replace population
             pop = children
             assert len(pop) == self.n_pop, f'Pop array is not equal after children are made. ' \
                                            f'It is now {len(pop)} and should be n_pop = {self.n_pop}'
 
+        # after final result is attained:
         decoded = dec.decode(best)  # get final values for variables
-        toc = perf_counter()
+        toc = perf_counter()  # get end time
 
         if verbose:
             print(f'Execution time was {toc - tic:0.4f} seconds')
@@ -298,4 +295,4 @@ class GeneticAlgorithm:
             print('Please be careful in using these results and assume they are wrong unless proven otherwise!'
                   + _Colors.RESET)
 
-        return [best_eval, decoded, plot_array]
+        return [best_eval, decoded, check_array_complete]

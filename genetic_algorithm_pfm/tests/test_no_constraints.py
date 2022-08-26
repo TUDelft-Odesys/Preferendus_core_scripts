@@ -12,7 +12,7 @@ from genetic_algorithm_pfm import GeneticAlgorithm
 
 
 def test_ackley(verbose=False):
-    """Test to see if algorithm is correct. runs automatically via pytest."""
+    """Test to see if algorithm is functioning correctly. Runs automatically via pytest."""
 
     def test_objective(x):
         """Ackley function. Minimal at x,y = 0,0 for 5 < x,y < 5"""
@@ -63,7 +63,7 @@ def test_ackley(verbose=False):
 
 
 def test_rastrigin():
-    """Test to see if algorithm is correct. Runs automatically via pytest"""
+    """Test to see if algorithm is functioning correctly. Runs automatically via pytest"""
     a = 10
     n = 6
 

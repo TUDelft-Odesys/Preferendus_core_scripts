@@ -1,10 +1,5 @@
 """
-Test function with simple constraint handler to verify the GA.See the paper of Kuri & Quezada (1998) for the referenced
-functions and solutions.
-
-Sources:
-Kuri, Angel & Quezada, Carlos. (1998). A universal eclectic genetic algorithm for constrained optimization. Proceedings
-6th European Congress on Intelligent Techniques & Soft Computing, EUFIT'98.
+Test function to see if the combination of the GA and Tetra is still functioning correctly.
 """
 import numpy as np
 from scipy.interpolate import pchip_interpolate
@@ -19,7 +14,6 @@ solver = TetraSolver()
 
 
 def objective(variables):
-    """Objective problem 2 of the reference paper"""
     x1 = variables[:, 0]
     x2 = variables[:, 1]
 
