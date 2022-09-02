@@ -8,9 +8,9 @@ from scipy.optimize import minimize
 
 """
 In the first part of this script, the single objective optimization as shown in section 3.4.1 of the reader is shown. 
-First, the three objectives an two constraints are defined as python functions. Next, the boundaries for the design 
+First, the three objectives and two constraints are defined as python functions. Next, the boundaries for the design 
 variables x1 and x2 are defined, after which the optimizations can be done. The results of these optimizations are then 
-printed as a Pandas DataFrame. This resulting dataframe is showing the same as table 3 of the reader.
+printed as a Pandas DataFrame. These DataFrames are showing the same as table 3 of the reader.
 
 Note that objective 1 and 3 need to be maximized, whereas objective 2 should be minimized. Hence, only for objective 1 
 and 3, the result is multiplied by -1.
@@ -110,8 +110,6 @@ print()
 """
 As discussed in section 3.4.2 of the reader, we can also express the optimization problem in preference functions. The 
 preference functions of this example are declared in the lines below. 
-
-Note that we want to maximize the preference, so we need to multiply the objectives by -1.
 """
 
 
@@ -160,7 +158,7 @@ result_p3 = minimize(objective_p3, np.array([1, 1]), method='SLSQP', bounds=boun
 results = np.zeros((3, 5))  # define empty numpy array to store the results in
 
 x_1, x_2 = result_p1.x  # results of optimization for just preference function 1
-results[0] = [x_1, x_2, objective_p1(result_p1.x), objective_p2(result_p1.x),objective_p3(result_p1.x)]
+results[0] = [x_1, x_2, objective_p1(result_p1.x), objective_p2(result_p1.x), objective_p3(result_p1.x)]
 
 x_1, x_2 = result_p2.x  # results of optimization for just preference function 2
 results[1] = [x_1, x_2, objective_p1(result_p2.x), objective_p2(result_p2.x), objective_p3(result_p2.x)]
@@ -187,9 +185,8 @@ p2 = 100 - (1 / 6600) * (c2 - 90000)
 p3 = (1 / 3150) * (c3 - 45000)
 
 # create figure that plots all preference curves in subplots
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
-fig.suptitle('Preference functions')
-
+fig = plt.figure()
+ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(c1, p1)
 ax1.set_xlim((0, 1200000))
 ax1.set_ylim((0, 100))
@@ -198,6 +195,8 @@ ax1.set_xlabel('Profit [€]')
 ax1.set_ylabel('Preference score')
 ax1.grid()
 
+fig = plt.figure()
+ax2 = fig.add_subplot(1, 1, 1)
 ax2.plot(c2, p2)
 ax2.set_xlim((0, 750000))
 ax2.set_ylim((0, 100))
@@ -206,6 +205,8 @@ ax2.set_xlabel('Emissions [kg]')
 ax2.set_ylabel('Preference score')
 ax2.grid()
 
+fig = plt.figure()
+ax3 = fig.add_subplot(1, 1, 1)
 ax3.plot(c3, p3)
 ax3.set_xlim((0, 360000))
 ax3.set_ylim((0, 100))

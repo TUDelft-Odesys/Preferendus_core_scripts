@@ -45,7 +45,7 @@ when errors occur.
 
 Instead, the lambda function is used. The lambda function makes it possible to define a function on one line of code. It
 functions the same as a normal python function, however, requires a lot less space. It would require to much effort to 
-go into detail on the functionality here, especially since there are good tutorials only. The interested reader is hence
+go into detail on the functionality here, especially since there are good tutorials about. The interested reader is hence
 referred to https://realpython.com/python-lambda/ 
 
 The short version is that if we look to line 54, it is basically the same as:
@@ -105,7 +105,7 @@ print(f'the maximum number of affordable houses is {round(-1 * result.fun)}')
 
 """
 Lastly, the objective for the project developer is optimized again, only now the municipality's objective is added as 
-a constraint. This constraint is added to the list with constraint declared on line 59 by using the append method.
+a constraint. This constraint is added to the list with constraints declared on line 59 by using the append method.
 """
 
 print()
