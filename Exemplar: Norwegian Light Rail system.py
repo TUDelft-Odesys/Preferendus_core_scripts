@@ -10,7 +10,6 @@ from scipy.interpolate import pchip_interpolate
 
 from genetic_algorithm_pfm import GeneticAlgorithm
 from tetra_pfm import TetraSolver
-from weighted_minmax import aggregate_max
 
 """
 This script contains the code to run both the a posteriori evaluation as the a priori optimization of the Bergen Light 
@@ -27,6 +26,13 @@ w1 = 0.2  # weight of municipality
 w2 = 0.4  # weight of users and inhabitants
 w3 = 0.3  # weight of light rail operator
 w4 = 0.1  # weight of project organisation
+
+# x_points: the outcomes of the objective for which a preference score is defined by the stakeholders
+# p_points: the corresponding preference scores
+x_points_1, p_points_1 = [[1300000, 4000000, 5250000], [0, 100, 60]]
+x_points_2, p_points_2 = [[7.5, 20, 35, 45], [100, 80, 10, 0]]
+x_points_3, p_points_3 = [[350400, 750000, 1212000], [60, 100, 0]]
+x_points_4, p_points_4 = [[1.5, 2, 5], [100, 95, 0]]
 
 
 def objective_municipality(x1, x2):
@@ -84,10 +90,10 @@ def objective(variables):
     x2 = variables[:, 1]  # number of trains
 
     # calculate the preference scores
-    p_1 = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], objective_municipality(x1, x2))
-    p_2 = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], objective_inhabitants(x1, x2))
-    p_3 = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], objective_operator(x1, x2))
-    p_4 = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], objective_project_team(x1))
+    p_1 = pchip_interpolate(x_points_1, p_points_1, objective_municipality(x1, x2))
+    p_2 = pchip_interpolate(x_points_2, p_points_2, objective_inhabitants(x1, x2))
+    p_3 = pchip_interpolate(x_points_3, p_points_3, objective_operator(x1, x2))
+    p_4 = pchip_interpolate(x_points_4, p_points_4, objective_project_team(x1))
 
     # aggregate preference scores and return this to the GA
     return solver.request([w1, w2, w3, w4], [p_1, p_2, p_3, p_4])
@@ -105,12 +111,6 @@ Next, we can aggregate the different preference score per alternative, and print
 DataFrames should contain the same data as table 9 and 10 of the reader resp.
 """
 
-# define coordinates for preference points, to be used in the interpolation function (see also table 7 of the reader)
-p1_min, p1_mid, p1_max = [1300000, 4000000, 5250000]
-p2_min, p2_mid1, p2_mid2, p2_max = [7.5, 20, 35, 45]
-p3_min, p3_mid, p3_max = [350400, 750000, 1212000]
-p4_min, p4_mid, p4_max = [1.5, 2, 5]
-
 # define array with coordinates of the corner points
 x_array = np.array([
     [3, 2],
@@ -120,15 +120,13 @@ x_array = np.array([
 ])
 
 # calculate the preference scores per alternative per preference function
-results_p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60],
-                               objective_municipality(x_array[:, 0], x_array[:, 1]))
+results_p1 = pchip_interpolate(x_points_1, p_points_1, objective_municipality(x_array[:, 0], x_array[:, 1]))
 
-results_p2 = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0],
-                               objective_inhabitants(x_array[:, 0], x_array[:, 1]))
+results_p2 = pchip_interpolate(x_points_2, p_points_2, objective_inhabitants(x_array[:, 0], x_array[:, 1]))
 
-results_p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], objective_operator(x_array[:, 0], x_array[:, 1]))
+results_p3 = pchip_interpolate(x_points_3, p_points_3, objective_operator(x_array[:, 0], x_array[:, 1]))
 
-results_p4 = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], objective_project_team(x_array[:, 0]))
+results_p4 = pchip_interpolate(x_points_4, p_points_4, objective_project_team(x_array[:, 0]))
 
 # print preference scores as pandas DataFrame (see also table 9 of the reader)
 alternatives = ['X1 = 3; X2= 2',
@@ -224,10 +222,10 @@ c3 = np.linspace(350400, 1212000)
 c4 = np.linspace(1.5, 5)
 
 # calculate the preference functions
-p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], c1)
-p2 = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], c2)
-p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], c3)
-p4 = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], c4)
+p1 = pchip_interpolate(x_points_1, p_points_1, c1)
+p2 = pchip_interpolate(x_points_2, p_points_2, c2)
+p3 = pchip_interpolate(x_points_3, p_points_3, c3)
+p4 = pchip_interpolate(x_points_4, p_points_4, c4)
 
 # make numpy array of results, to allow for array splicing
 variable = np.array(save_array)
@@ -239,10 +237,10 @@ c2_res = objective_inhabitants(variable[:, 0], variable[:, 1])
 c3_res = objective_operator(variable[:, 0], variable[:, 1])
 c4_res = objective_project_team(variable[:, 0])
 
-p1_res = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], c1_res)
-p2_res = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], c2_res)
-p3_res = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], c3_res)
-p4_res = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], c4_res)
+p1_res = pchip_interpolate(x_points_1, p_points_1, c1_res)
+p2_res = pchip_interpolate(x_points_2, p_points_2, c2_res)
+p3_res = pchip_interpolate(x_points_3, p_points_3, c3_res)
+p4_res = pchip_interpolate(x_points_4, p_points_4, c4_res)
 
 # and secondly, for the as-built solution, so we can compare the two.
 c1_res_actual = objective_municipality(9, 12)
@@ -250,10 +248,10 @@ c2_res_actual = objective_inhabitants(9, 12)
 c3_res_actual = objective_operator(9, 12)
 c4_res_actual = objective_project_team(9)
 
-p1_res_actual = pchip_interpolate([p1_min, p1_mid, p1_max], [0, 100, 60], c1_res_actual)
-p2_res_actual = pchip_interpolate([p2_min, p2_mid1, p2_mid2, p2_max], [100, 80, 10, 0], c2_res_actual)
-p3_res_actual = pchip_interpolate([p3_min, p3_mid, p3_max], [60, 100, 0], c3_res_actual)
-p4_res_actual = pchip_interpolate([p4_min, p4_mid, p4_max], [100, 95, 0], c4_res_actual)
+p1_res_actual = pchip_interpolate(x_points_1, p_points_1, c1_res_actual)
+p2_res_actual = pchip_interpolate(x_points_2, p_points_2, c2_res_actual)
+p3_res_actual = pchip_interpolate(x_points_3, p_points_3, c3_res_actual)
+p4_res_actual = pchip_interpolate(x_points_4, p_points_4, c4_res_actual)
 
 # create figure that plots all preference curves and the preference scores of the returned results of the GA
 fig = plt.figure()
