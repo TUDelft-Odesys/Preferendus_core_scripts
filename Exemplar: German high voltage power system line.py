@@ -1,6 +1,7 @@
 """
 Python code for the German high voltage power system line exemplar
 """
+import sys
 
 import numpy as np
 import pandas as pd
@@ -24,11 +25,9 @@ solver = TetraSolver()
 # define overall system length
 LOA = 700
 
-# x_points: the outcomes of the objective for which a preference score is defined by the stakeholders
-# p_points: the corresponding preference scores
-x_points_1, p_points_1 = [[500, 600, 800], [100, 50, 0]]
-x_points_2, p_points_2 = [[20, 130, 200], [100, 50, 0]]
-x_points_3, p_points_3 = [[1300, 1450, 1700], [100, 40, 0]]
+p1_min, p1_mid, p1_max = [500, 600, 800]
+p2_min, p2_mid, p2_max = [20, 130, 200]
+p3_min, p3_mid, p3_max = [1300, 1450, 1700]
 
 # set weights for the different objectives
 w1 = 0.40  # weight of the costs objective
@@ -181,9 +180,9 @@ def objective(variabels, method='tetra'):
     duration = objective_duration(x1, x2)
 
     # calculate preference scores based on objective values
-    p_costs = pchip_interpolate(x_points_1, p_points_1, costs)
-    p_area = pchip_interpolate(x_points_2, p_points_2, area)
-    p_time = pchip_interpolate(x_points_3, p_points_3, duration)
+    p_costs = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], costs)
+    p_area = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], area)
+    p_time = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 40, 0], duration)
 
     # aggregate preference scores and return this to the GA
     w = [w1, w2, w3]
@@ -215,9 +214,9 @@ x_array = np.array([
 ])
 
 # calculate the preference scores per alternative per preference function
-results_p1 = pchip_interpolate(x_points_1, p_points_1, objective_costs(x_array[:, 0], x_array[:, 1]))
-results_p2 = pchip_interpolate(x_points_2, p_points_2, objective_area(x_array[:, 0], x_array[:, 1]))
-results_p3 = pchip_interpolate(x_points_3, p_points_3, objective_duration(x_array[:, 0], x_array[:, 1]))
+results_p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], objective_costs(x_array[:, 0], x_array[:, 1]))
+results_p2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], objective_area(x_array[:, 0], x_array[:, 1]))
+results_p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 40, 0], objective_duration(x_array[:, 0], x_array[:, 1]))
 
 # print preference scores as pandas DataFrame (see also table 13 of the reader)
 alternatives = ['AC – 400 ACO – 300 ACU',
@@ -349,9 +348,9 @@ c2 = np.linspace(20, 200)  # area
 c3 = np.linspace(1300, 1700)  # time
 
 # calculate the preference functions
-p1 = pchip_interpolate(x_points_1, p_points_1, c1)
-p2 = pchip_interpolate(x_points_2, p_points_2, c2)
-p3 = pchip_interpolate(x_points_3, p_points_3, c3)
+p1 = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], c1)
+p2 = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], c2)
+p3 = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 40, 0], c3)
 
 # make numpy array of results, to allow for array splicing
 variable_t = np.array(save_array_tetra)
@@ -363,18 +362,18 @@ c1_res_t = objective_costs(variable_t[:, 0], variable_t[:, 1])
 c2_res_t = objective_area(variable_t[:, 0], variable_t[:, 1])
 c3_res_t = objective_duration(variable_t[:, 0], variable_t[:, 1])
 
-p1_res_t = pchip_interpolate(x_points_1, p_points_1, c1_res_t)
-p2_res_t = pchip_interpolate(x_points_2, p_points_2, c2_res_t)
-p3_res_t = pchip_interpolate(x_points_3, p_points_3, c3_res_t)
+p1_res_t = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], c1_res_t)
+p2_res_t = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], c2_res_t)
+p3_res_t = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 40, 0], c3_res_t)
 
 # and secondly, for the results with MinMax
 c1_res_mm = objective_costs(variable_t[:, 0], variable_t[:, 1])
 c2_res_mm = objective_area(variable_t[:, 0], variable_t[:, 1])
 c3_res_mm = objective_duration(variable_t[:, 0], variable_t[:, 1])
 
-p1_res_mm = pchip_interpolate(x_points_1, p_points_1, c1_res_mm)
-p2_res_mm = pchip_interpolate(x_points_2, p_points_2, c2_res_mm)
-p3_res_mm = pchip_interpolate(x_points_3, p_points_3, c3_res_mm)
+p1_res_mm = pchip_interpolate([p1_min, p1_mid, p1_max], [100, 50, 0], c1_res_mm)
+p2_res_mm = pchip_interpolate([p2_min, p2_mid, p2_max], [100, 50, 0], c2_res_mm)
+p3_res_mm = pchip_interpolate([p3_min, p3_mid, p3_max], [100, 40, 0], c3_res_mm)
 
 # create figure that plots all preference curves and the preference scores of the returned results of the GA
 fig = plt.figure()

@@ -29,15 +29,15 @@ def interpolate_data(data):
 
 
 # weights setting, weights can be adjusted between runs to check for outcome changes
-w1 = 0.4
-w2 = 0.4
-w3 = 0.2
+w1 = 1 / 3
+w2 = 1 / 3
+w3 = 1 / 3
 
 # x_points: the outcomes of the objective for which a preference score is defined by the stakeholders
 # p_points: the corresponding preference scores
 x_points_1, p_points_1 = [[0, 6000, 30000], [100, 50, 0]]
 x_points_2, p_points_2 = [[0, 0.3, 1], [0, 40, 100]]
-x_points_3, p_points_3 = [[0, 15000, 30000], [100, 40, 0]]
+x_points_3, p_points_3 = [[0, 9000, 15000], [100, 70, 0]]
 
 # import Tetra solver
 solver = TetraSolver()
@@ -64,8 +64,8 @@ def objective_maintenance_costs(force, acc):
     :param acc: acceleration of rail
     :return: maintenance costs
     """
-    norm_force = (force - min_force) / (max_force - min_force)
-    norm_acc = (acc - min_acc) / (max_acc - min_acc)
+    norm_force = 1 - (force - min_force) / (max_force - min_force)
+    norm_acc = 1 - (acc - min_acc) / (max_acc - min_acc)
     agg = np.sqrt(norm_force ** 2 + norm_acc ** 2)
     return agg * 15000
 
@@ -81,11 +81,21 @@ def objective(variables):
     var1 = variables[:, 0]  # sleeper distance
     var2 = variables[:, 1]  # number of sleepers
 
+    force_array = force_inter(var1, var2)  # get force on rail for every member of the population
+    acc_array = acc_inter(var1, var2)  # get acceleration of rail for every member of the population
+
+    # it might be that the force and acceleration arrays are 2d instead of 1d. Hence, the following is needed to
+    # translate them to 1d
     force = list()
     acc = list()
-    for ix in range(len(var1)):
-        force.append(force_inter(var1[ix], var2[ix])[0])  # get force on rail for every member of the population
-        acc.append(acc_inter(var1[ix], var2[ix])[0])  # get acceleration of rail for every member of the population
+
+    for it in range(len(var1)):
+        try:  # if array is indeed 2d
+            force.append(force_array[it][it])
+            acc.append(acc_array[it][it])
+        except IndexError:  # if array is 1d
+            force.append(force_array[it])
+            acc.append(acc_array[it])
 
     # calculate objectives
     maintenance_costs = objective_maintenance_costs(np.array(force), np.array(acc))
@@ -133,9 +143,9 @@ n_runs = 2
 
 # make dictionary with parameter settings for the GA run with the Tetra solver
 options = {
-    'n_bits': 6,
+    'n_bits': 9,
     'n_iter': 400,
-    'n_pop': 100,
+    'n_pop': 150,
     'r_cross': 0.9,
     'max_stall': 10,
     'tetra': True,
@@ -191,14 +201,24 @@ p1 = pchip_interpolate(x_points_1, p_points_1, c1)
 p2 = pchip_interpolate(x_points_2, p_points_2, c2)
 p3 = pchip_interpolate(x_points_3, p_points_3, c3)
 
+f = force_inter(variable[:, 0], variable[:, 1])  # get the forces on the rail
+a = acc_inter(variable[:, 0], variable[:, 1])  # get the accelerations of the rail
+
+# it might be that the force and acceleration arrays are 2d instead of 1d. Hence, the following is needed to
+# translate them to 1d
 f_res = list()
 a_res = list()
-for i in range(len(variable)):
-    f_res.append(force_inter(variable[:, 0][i], variable[:, 1][i])[0])  # get force on rail
-    a_res.append(acc_inter(variable[:, 0][i], variable[:, 1][i])[0])  # get acceleration of rail
+
+for i in range(len(variable[:, 0])):
+    try:  # if array is indeed 2d
+        f_res.append(f[i][i])
+        a_res.append(a[i][i])
+    except IndexError:  # if array is 1d
+        f_res.append(f[i])
+        a_res.append(a[i])
 
 # calculate individual preference scores for the results of the GA, to plot them on the preference curves
-c1_res = objective_maintenance_costs(np.array(f_res), np.array(a_res))
+c1_res = objective_maintenance_costs(np.array(f), np.array(a))
 c2_res = 1 - (np.array(a_res) - min_acc) / (max_acc - min_acc)
 c3_res = variable[:, 1] * 1000 - np.multiply(variable[:, 0], variable[:, 1]) * 350
 
@@ -245,6 +265,7 @@ da = np.loadtxt('data/data_acceleration.txt', delimiter=',')
 
 # create figures and plot the force and acceleration data
 fig = plt.figure()
+plt.rc('font', size=15)
 ax = fig.add_subplot(projection='3d')
 ax.scatter(df[:, 0], df[:, 1], df[:, 2] * 1e-3)
 ax.set_xlabel('Sleeper Spacing', labelpad=10)
