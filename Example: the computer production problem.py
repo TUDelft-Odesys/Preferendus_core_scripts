@@ -5,57 +5,42 @@ Python code for the computer production problem example
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
-from scipy.optimize import minimize
+from scipy.optimize import LinearConstraint, milp
 
 """
-In this example we will use the scipy.optimize.minimize function to search for the optimal number of computers of each 
+In this example we will use the scipy.optimize.milp function to search for the optimal number of computers of each 
 type the company should produce to maximize profit. Since this is a rather simple, linear problem, we can use a simple 
-and fast solver like the one provided with scipy.
+and fast solver like the one provided with scipy. Also, this algorithm can handle mixed integer problems, like the one
+provided here.
 
-To be able to optimize, we need to define the objective as an python function. Similar we need to define a function for 
-the constraint. This is done below, after which the optimization is performed on line 43 and the result is stored to the
-variable 'result. This optimal result is also printed on line 56-59.'
-
-For documentation on scipy.optimize.minimize please see the website of scipy or use the help() function.
+For documentation on scipy.optimize.milp please see the website of scipy or use the help() function.
 """
 
+# first, define the objective function. Since it is linear, we can just provide the coefficients with which x1 and x2
+# are multiplied. Note the -1: we need to maximize, however, milp is a minimization algorithm!
+eq = -1 * np.array([300, 500])
 
-def objective(variables):
-    """
-    Objective function to maximize the profit. Note that the returned value is multiplied by -1. This is since we use a
-    minimization algorithm.
+# next, define the constraints. For this we first provide a matrix A with all the coefficients x1 and x2 are multiplied.
+A = np.array([[1, 0], [0, 1], [1, 2]])
 
-    :param variables: list with design variable values
-    """
-    x1, x2 = variables
-    return -1 * (300 * x1 + 500 * x2)
+# next we determine the upper bounds as vectors
+b_u = np.array([60, 50, 120])
 
+# finally, we need to define the lower bound. In our case, these are taken as 0
+b_l = np.full_like(b_u, 0)
 
-def constraint(variables):
-    """
-    Constraint for optimization problem
+# we can now define the LinearConstraint
+constraints = LinearConstraint(A, b_l, b_u)
 
-    :param variables: list with design variable values
-    """
-    x1, x2 = variables
-    return -1 * x1 - 2 * x2 + 120
+# the integrality array will tell the algorithm it should take the variables as integers.
+integrality = np.ones_like(eq)
 
+"""Run the optimization"""
 
-result = minimize(fun=objective, x0=np.array([1, 1]), method='SLSQP', bounds=((0, 60), (0, 50)),
-                  constraints={'type': 'ineq', 'fun': constraint})
+result = milp(c=eq, constraints=constraints, integrality=integrality)
 
-"""
-Explanation of arguments:
-
-fun: function to minimize, here: objective function
-x0: initial guesses for the design variables x1 and x2
-method: optimization method. The specified method allows for both bounds and constraints.
-bounds: boundary values for design variables x1 and x2
-constraints: dictionary that contains the type of constraint and the constraint function.
-"""
-
-print(f'The optimal solution is for producing {round(result.x[0])} basic computers and '
-      f'{round(result.x[1])} advanced computers.')
+print(f'The optimal solution is for producing {result.x[0]} basic computers and '
+      f'{result.x[1]} advanced computers.')
 
 print(f'This will result in a profit of €{round(-1 * result.fun, 2)}')
 

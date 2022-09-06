@@ -1,55 +1,42 @@
 """
 Python code for the single stakeholder urban design problem example
 """
+
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import LinearConstraint, milp
 
 """
-In this example we will use the scipy.optimize.minimize function to search for the optimal combination of houses the 
-project developer should develop to make the highest profit given all constraints. Since this is a rather simple 
-linear problem, we can use a simple and fast solver like the one provided with scipy.
+In this example we will use the scipy.optimize.milp function to search for the optimal number of computers of each 
+type the company should produce to maximize profit. Since this is a rather simple, linear problem, we can use a simple 
+and fast solver like the one provided with scipy. Also, this algorithm can handle mixed integer problems, like the one
+provided here.
 
-To be able to optimize, we need to define the objective as an python function. Similar we need to define a function for 
-the constraint. This is done below, after which the optimization is performed on line 41 and the result is stored to the
-variable 'result. This optimal result is also printed on line 54-57.'
-
-For documentation on scipy.optimize.minimize please see the website of scipy or use the help() function.
+For documentation on scipy.optimize.milp please see the website of scipy or use the help() function.
 """
 
+# first, define the objective function. Since it is linear, we can just provide the coefficients with which x1 and x2
+# are multiplied. Note the -1: we need to maximize, however, milp is a minimization algorithm!
+eq = -1 * np.array([30_000, 50_000])
 
-def objective(variables):
-    """
-    Objective function that is minimized. Note that the returned value is multiplied by -1. This is since we use a
-    minimization algorithm.
+# next, define the constraints. For this we first provide a matrix A with all the coefficients x1 and x2 are multiplied.
+A = np.array([[1, 0], [0, 1], [1, 2]])
 
-    :param variables: list with design variable values
-    """
-    x1, x2 = variables
-    return -1 * (30_000 * x1 + 50_000 * x2)
+# next we determine the upper bounds as vectors
+b_u = np.array([60, 50, 150])
 
+# finally, we need to define the lower bound. In our case, these are taken as 0
+b_l = np.full_like(b_u, 0)
 
-def constraint(variables):
-    """
-    Constraint for optimization problem
+# we can now define the LinearConstraint
+constraints = LinearConstraint(A, b_l, b_u)
 
-    :param variables: list with design variable values
-    """
-    x1, x2 = variables
-    return -1 * x1 - 2 * x2 + 150
+# by the integrality array, we tell the algorithm it should take the variables as integers.
+# next we can run the optimization
+integrality = np.ones_like(eq)
 
+"""Run the optimization"""
 
-result = minimize(fun=objective, x0=np.array([1, 1]), method='SLSQP', bounds=((0, 60), (0, 50)),
-                  constraints={'type': 'ineq', 'fun': constraint})
-
-"""
-Explanation of arguments:
-
-fun: function to minimize, here: objective function
-x0: initial guesses for the design variables x1 and x2
-method: optimization method. The specified method allows for both bounds and constraints.
-bounds: boundary values for design variables x1 and x2
-constraints: dictionary that contains the type of constraint and the constraint function.
-"""
+result = milp(c=eq, constraints=constraints, integrality=integrality)
 
 print(f'The optimal solution is for {round(result.x[0])} houses of type A and '
       f'{round(result.x[1])} houses of type B.')

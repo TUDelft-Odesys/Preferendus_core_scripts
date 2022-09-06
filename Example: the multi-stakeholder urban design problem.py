@@ -1,89 +1,68 @@
 """
 Python code for the multi-stakeholder urban design problem example
 """
+
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import milp, LinearConstraint
 
 """
-In this example we will use the scipy.optimize.minimize function to search for the optimal solution for the objectives.
-Since this is a rather simple, linear problem, we can use a simple and fast solver like the one provided with scipy.
+In this example we will use the scipy.optimize.milp function to search for the optimal number of computers of each 
+type the company should produce to maximize profit. Since this is a rather simple, linear problem, we can use a simple 
+and fast solver like the one provided with scipy. Also, this algorithm can handle mixed integer problems, like the one
+provided here.
 
-To be able to optimize, we need to define the objectives as an python function. Similar we need to define a function for 
-the constraints. Since we have so many constraints, a more compact approached is used in this example. More on that 
-later on.
-
-For documentation on scipy.optimize.minimize please see the website of scipy or use the help() function.
+For documentation on scipy.optimize.milp please see the website of scipy or use the help() function.
 """
 
+# first, define the objective function. Since it is linear, we can just provide the coefficients with which x1 and x2
+# are multiplied. Note the -1: we need to maximize, however, milp is a minimization algorithm!
+eq_proj_dev = -1 * np.array([11125, 16650, 16500, 11250, 16950, 21700])
+eq_municipal = -1 * np.array([1, 0, 0, 1, 0, 0])
 
-def objective_project_dev(variables):
-    """
-    Objective function to maximize the profit of the project developer. Note that the returned value is multiplied by
-    -1. This is since we use a minimization algorithm.
+# next, define the constraints. For this we first provide a matrix A with all the coefficients x1 and x2 are multiplied.
+A = np.array([
+    [-1, -1, -1, -1, -1, -1],
+    [1, 1, 1, 1, 1, 1],
 
-    :param variables: list with design variable values
-    """
-    x1, x2, x3, x4, x5, x6 = variables
-    return -1 * (11125 * x1 + 16650 * x2 + 16500 * x3 + 11250 * x4 + 16950 * x5 + 21700 * x6)
+    # x1
+    [-0.8, 0.2, 0.2, 0.2, 0.2, 0.2],
+    [0.7, -0.3, -0.3, -0.3, -0.3, -0.3],
+    # x2
+    [0.15, -0.85, 0.15, 0.15, 0.15, 0.15],
+    [-0.25, 0.75, -0.25, -0.25, -0.25, -0.25],
+    # x3
+    [0.1, 0.1, -0.9, 0.1, 0.1, 0.1],
+    [-0.15, -0.15, 0.85, -0.15, -0.15, -0.15],
+    # x4
+    [0.15, 0.15, 0.15, -0.85, 0.15, 0.15],
+    [-0.2, -0.2, -0.2, 0.8, -0.2, -0.2],
+    # x5
+    [0.1, 0.1, 0.1, 0.1, -0.9, 0.1],
+    [-0.2, -0.2, -0.2, -0.2, 0.8, -0.2],
+    # x6
+    [0.05, 0.05, 0.05, 0.05, 0.05, -0.95],
+    [-0.1, -0.1, -0.1, -0.1, -0.1, 0.9],
+])
 
+# next we determine the upper bounds as vectors
+b_u = np.array([-200, 260, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-def objective_municipality(variables):
-    """
-    Objective function to maximize the number of affordable houses. Note that the returned value is multiplied by
-    -1. This is since we use a minimization algorithm.
+# finally, we need to define the lower bound. In our case, these are taken as -inf
+b_l = np.full_like(b_u, -np.inf)
 
-    :param variables: list with design variable values
-    """
-    x1, x2, x3, x4, x5, x6 = variables
-    return -1 * (x1 + x4)
+# we can now define the LinearConstraint
+constraints = LinearConstraint(A, b_l, b_u)
 
+# by the integrality array, we tell the algorithm it should take the variables as integers.
+integrality = np.ones_like(eq_proj_dev)
 
-"""
-In previous examples, the constraints were all programmed as seperate functions. Since we have so much functions here, 
-this approach would mean we need a lot of space. This would result in a file that is hard to read and thus hard to fix 
-when errors occur.
-
-Instead, the lambda function is used. The lambda function makes it possible to define a function on one line of code. It
-functions the same as a normal python function, however, requires a lot less space. It would require to much effort to 
-go into detail on the functionality here, especially since there are good tutorials about. The interested reader is hence
-referred to https://realpython.com/python-lambda/ 
-
-The short version is that if we look to line 54, it is basically the same as:
-
-(1)     def constraint_1(x):
-            return -200 + x[0] + x[1] + x[2] + x[3] + x[4] + x[5]
-    
-(2)     {'type': 'ineq', 'fun': constraint_1}
-"""
-
-cons = [{'type': 'ineq', 'fun': lambda x: -200 + x[0] + x[1] + x[2] + x[3] + x[4] + x[5]},
-        {'type': 'ineq', 'fun': lambda x: -x[0] - x[1] - x[2] - x[3] - x[4] - x[5] + 260},
-
-        {'type': 'ineq', 'fun': lambda x: -0.2 * sum(x) + x[0]},
-        {'type': 'ineq', 'fun': lambda x: -x[0] + 0.3 * sum(x)},
-
-        {'type': 'ineq', 'fun': lambda x: -0.15 * sum(x) + x[1]},
-        {'type': 'ineq', 'fun': lambda x: -x[1] + 0.25 * sum(x)},
-
-        {'type': 'ineq', 'fun': lambda x: -0.1 * sum(x) + x[2]},
-        {'type': 'ineq', 'fun': lambda x: -x[2] + 0.15 * sum(x)},
-
-        {'type': 'ineq', 'fun': lambda x: -0.15 * sum(x) + x[3]},
-        {'type': 'ineq', 'fun': lambda x: -x[3] + 0.2 * sum(x)},
-
-        {'type': 'ineq', 'fun': lambda x: -0.1 * sum(x) + x[4]},
-        {'type': 'ineq', 'fun': lambda x: -x[4] + 0.2 * sum(x)},
-
-        {'type': 'ineq', 'fun': lambda x: -0.05 * sum(x) + x[5]},
-        {'type': 'ineq', 'fun': lambda x: -x[5] + 0.1 * sum(x)}
-        ]
-
-types = ['A', 'C', 'L', 'M', 'Q', 'S']  # make a list that contains the names of all types of houses
+"""Run the optimizations"""
 
 # below, the project developer objective is optimized and the result is printed.
 print('Optimizing on the project developer’s objective:')
-result = minimize(objective_project_dev, np.array([1, 1, 1, 1, 1, 1]), method='SLSQP', constraints=cons)
+result = milp(c=eq_proj_dev, constraints=constraints, integrality=integrality)
 
+types = ['A', 'C', 'L', 'M', 'Q', 'S']  # make a list that contains the names of all types of houses
 print('The optimal solution is for:')
 for i, n in enumerate(result.x):
     print(f'\t{round(n)} houses of type {types[i]}')
@@ -93,25 +72,27 @@ print(f'This will result in a profit of €{round(-1 * result.fun, 2)}')
 # secondly, the municipality's objective is optimized
 print()
 print('Optimizing on the municipality’s objective:')
-result = minimize(objective_municipality, np.array([1, 1, 1, 1, 1, 1]), method='SLSQP', constraints=cons)
+result = milp(c=eq_municipal, constraints=constraints, integrality=integrality)
 
 print('The optimal solution is for:')
 for i, n in enumerate(result.x):
     print(f'\t{round(n)} houses of type {types[i]}')
-    # the observant student will note that the sum of the printed number of houses is more than 260. This is due to a
-    # rounding error. This can be mitigated by using an optimization algorithm that is fit for integer problems.
 
 print(f'the maximum number of affordable houses is {round(-1 * result.fun)}')
 
 """
 Lastly, the objective for the project developer is optimized again, only now the municipality's objective is added as 
-a constraint. This constraint is added to the list with constraints declared on line 59 by using the append method.
+a constraint. This constraint is added to the previously declared arrays by using the append method
 """
 
 print()
 print('Optimizing using the constraint method:')
-cons.append({'type': 'ineq', 'fun': lambda x: -130 + x[0] + x[3]})
-result = minimize(objective_project_dev, np.array([1, 1, 1, 1, 1, 1]), method='SLSQP', constraints=cons)
+A = np.append(A, [[-1, 0, 0, -1, 0, 0]], axis=0)
+b_u = np.append(b_u, -130)
+b_l = np.full_like(b_u, -np.inf)
+constraints = LinearConstraint(A, b_l, b_u)
+
+result = milp(c=eq_proj_dev, constraints=constraints, integrality=integrality)
 
 print('The optimal solution is for:')
 for i, n in enumerate(result.x):
