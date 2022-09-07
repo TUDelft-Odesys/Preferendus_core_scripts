@@ -73,7 +73,7 @@ def objective_p2(x1, x2):
     :param x1: 1st design variable
     :param x2: 2nd design variable
     """
-    return pchip_interpolate([0, 1, 2], [0, 100, 60], x2 / (20_000 * x1 / 400))
+    return pchip_interpolate([0, 1.2, 2], [0, 100, 60], x2 / (20_000 * x1 / 400))
 
 
 def objective(variables, method='tetra'):
@@ -129,11 +129,11 @@ docstring of GeneticAlgorithm (via help()) or chapter 4 of the reader.
 
 # make dictionary with parameter settings for the GA run with the Tetra solver
 options = {
-    'n_bits': 12,
+    'n_bits': 16,
     'n_iter': 400,
-    'n_pop': 500,
-    'r_cross': 0.9,
-    'max_stall': 15,
+    'n_pop': 1100,
+    'r_cross': 0.80,
+    'max_stall': 10,
     'tetra': True,
     'var_type_mixed': ['real', 'int']
 }
@@ -148,10 +148,10 @@ print(f'Optimal result for a distance of {round(design_variables_tetra[0], 2)} m
 
 # make dictionary with parameter settings for the GA run with the minmax solver
 options = {
-    'n_bits': 12,
+    'n_bits': 24,
     'n_iter': 400,
     'n_pop': 1000,
-    'r_cross': 0.9,
+    'r_cross': 0.75,
     'max_stall': 15,
     'tetra': False,
     'var_type_mixed': ['real', 'int']
@@ -202,7 +202,7 @@ N1, N2 = np.meshgrid(norm_1, norm_2)
 p1 = 100 * (np.sqrt(N1 ** 2 + N2) ** 2)
 m = p1 > 100
 p1[m] = 0
-p2 = pchip_interpolate([0, 1, 2], [0, 100, 60], c2)
+p2 = pchip_interpolate([0, 1.2, 2], [0, 100, 60], c2)
 
 # calculate individual preference scores for the results of the GA, to plot them on the preference curves
 temp_tetra = np.zeros((2, 2))  # workaround to fix problem with masking a float

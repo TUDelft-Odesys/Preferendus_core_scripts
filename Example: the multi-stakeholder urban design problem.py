@@ -47,11 +47,11 @@ A = np.array([
 # next we determine the upper bounds as vectors
 b_u = np.array([-200, 260, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-# finally, we need to define the lower bound. In our case, these are taken as -inf
-b_l = np.full_like(b_u, -np.inf)
+# the lower bound is taken as -inf.
+# this is the default value for LinearConstraint, so we do not need to define it again.
 
 # we can now define the LinearConstraint
-constraints = LinearConstraint(A, b_l, b_u)
+constraints = LinearConstraint(A, ub=b_u)
 
 # by the integrality array, we tell the algorithm it should take the variables as integers.
 integrality = np.ones_like(eq_proj_dev)

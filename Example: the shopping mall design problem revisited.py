@@ -149,11 +149,11 @@ print(f'Optimal result for x1 = {round(design_variables_tetra[0], 2)}m2 and '
 
 # make dictionary with parameter settings for the GA run with the minmax solver
 options = {
-    'n_bits': 12,
+    'n_bits': 16,
     'n_iter': 400,
-    'n_pop': 150,
-    'r_cross': 0.9,
-    'max_stall': 10,
+    'n_pop': 450,
+    'r_cross': 0.8,
+    'max_stall': 15,
     'tetra': False,
     'var_type_mixed': ['real', 'real']
 }
