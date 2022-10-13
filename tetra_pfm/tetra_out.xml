@@ -1,17 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Solution Model="SolutionService">
-  <Alternative Name="A1" Value="0.0000000000000000e+00" />
-  <Alternative Name="A2" Value="3.8792389714242709e+01" />
-  <Alternative Name="A3" Value="8.0986925939447133e+01" />
-  <Alternative Name="A4" Value="1.0000000000000000e+02" />
-  <Alternative Name="A5" Value="1.0000000000000000e+02" />
-  <Alternative Name="A6" Value="1.0000000000000000e+02" />
-  <Alternative Name="A7" Value="1.0000000000000000e+02" />
-  <Alternative Name="A8" Value="1.0000000000000000e+02" />
-  <Alternative Name="A9" Value="1.0000000000000000e+02" />
-  <Alternative Name="A10" Value="1.0000000000000000e+02" />
-  <Alternative Name="A11" Value="1.0000000000000000e+02" />
-  <Alternative Name="A12" Value="3.0022578280234598e+01" />
-  <Alternative Name="A13" Value="1.0000000000000000e+02" />
-  <Alternative Name="A14" Value="1.0000000000000000e+02" />
+  <Alternative Name="A1" Value="3.6678207083317808e+01" />
+  <Alternative Name="A2" Value="0.0000000000000000e+00" />
+  <Alternative Name="A3" Value="1.0000000000000000e+02" />
+  <Alternative Name="A4" Value="6.3321792916682028e+01" />
 </Solution>

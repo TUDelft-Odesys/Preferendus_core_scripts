@@ -21,103 +21,32 @@
   <Alternative Name="A4" Type="0">
     <Comment />
       </Alternative>
-  <Alternative Name="A5" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A6" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A7" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A8" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A9" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A10" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A11" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A12" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A13" Type="0">
-    <Comment />
-      </Alternative>
-  <Alternative Name="A14" Type="0">
-    <Comment />
-      </Alternative>
   <Criterion Name="Criteria" IsPreferenceIncreasing="1">
     <Comment />
     <Criterion Name="C1" IsPreferenceIncreasing="1">
       <Comment />
       <Measurement Name="Ratings" Type="0" DecisionMaker="Default User" SubType="0">
         <Comment />
-      <RulerValue Name="A1" Value="62.37291677185109" />
-        <RulerValue Name="A2" Value="61.48623929207356" />
-        <RulerValue Name="A3" Value="62.421022821006936" />
-        <RulerValue Name="A4" Value="62.278915927303125" />
-        <RulerValue Name="A5" Value="62.278915927303125" />
-        <RulerValue Name="A6" Value="62.278915927303125" />
-        <RulerValue Name="A7" Value="62.278915927303125" />
-        <RulerValue Name="A8" Value="62.278915927303125" />
-        <RulerValue Name="A9" Value="62.278915927303125" />
-        <RulerValue Name="A10" Value="62.278915927303125" />
-        <RulerValue Name="A11" Value="62.278915927303125" />
-        <RulerValue Name="A12" Value="62.402128564640165" />
-        <RulerValue Name="A13" Value="62.278915927303125" />
-        <RulerValue Name="A14" Value="62.278915927303125" />
+      <RulerValue Name="A1" Value="100.0" />
+        <RulerValue Name="A2" Value="31.37254901960786" />
+        <RulerValue Name="A3" Value="68.62745098039217" />
+        <RulerValue Name="A4" Value="0.0" />
       </Measurement>
     </Criterion>
     <Criterion Name="C2" IsPreferenceIncreasing="1">
       <Comment />
       <Measurement Name="Ratings" Type="0" DecisionMaker="Default User" SubType="0">
         <Comment />
-      <RulerValue Name="A1" Value="82.97082890399469" />
-        <RulerValue Name="A2" Value="83.53553855824744" />
-        <RulerValue Name="A3" Value="83.03330400050189" />
-        <RulerValue Name="A4" Value="83.24392439847757" />
-        <RulerValue Name="A5" Value="83.24392439847757" />
-        <RulerValue Name="A6" Value="83.24392439847757" />
-        <RulerValue Name="A7" Value="83.24392439847757" />
-        <RulerValue Name="A8" Value="83.24392439847757" />
-        <RulerValue Name="A9" Value="83.24392439847757" />
-        <RulerValue Name="A10" Value="83.24392439847757" />
-        <RulerValue Name="A11" Value="83.24392439847757" />
-        <RulerValue Name="A12" Value="82.77886060928074" />
-        <RulerValue Name="A13" Value="83.24392439847757" />
-        <RulerValue Name="A14" Value="83.24392439847757" />
-      </Measurement>
-    </Criterion>
-    <Criterion Name="C3" IsPreferenceIncreasing="1">
-      <Comment />
-      <Measurement Name="Ratings" Type="0" DecisionMaker="Default User" SubType="0">
-        <Comment />
-      <RulerValue Name="A1" Value="76.83650852771875" />
-        <RulerValue Name="A2" Value="84.19907565903127" />
-        <RulerValue Name="A3" Value="84.31453504525" />
-        <RulerValue Name="A4" Value="84.27604219434838" />
-        <RulerValue Name="A5" Value="84.27604219434838" />
-        <RulerValue Name="A6" Value="84.27604219434838" />
-        <RulerValue Name="A7" Value="84.27604219434838" />
-        <RulerValue Name="A8" Value="84.27604219434838" />
-        <RulerValue Name="A9" Value="84.27604219434838" />
-        <RulerValue Name="A10" Value="84.27604219434838" />
-        <RulerValue Name="A11" Value="84.27604219434838" />
-        <RulerValue Name="A12" Value="84.3530342818044" />
-        <RulerValue Name="A13" Value="84.27604219434838" />
-        <RulerValue Name="A14" Value="84.27604219434838" />
+      <RulerValue Name="A1" Value="0.0007335999999327214" />
+        <RulerValue Name="A2" Value="58.28289159999997" />
+        <RulerValue Name="A3" Value="41.71848879999993" />
+        <RulerValue Name="A4" Value="100.00064679999997" />
       </Measurement>
     </Criterion>
     <Measurement Name="Criteria Weights" Type="1" DecisionMaker="Default User" SubType="0">
       <Comment />
-      <RulerValue Name="C1" Value="0.4" />
-      <RulerValue Name="C2" Value="0.4" />
-      <RulerValue Name="C3" Value="0.2" />
+      <RulerValue Name="C1" Value="0.5" />
+      <RulerValue Name="C2" Value="0.5" />
     </Measurement>
   </Criterion>
 </Model>
