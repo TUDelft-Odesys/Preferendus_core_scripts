@@ -7,7 +7,9 @@ References:
     Computers in Industry, 41(2), 113-127.
 """
 
-from numpy.random import rand
+from pprint import pprint
+
+import numpy as np
 
 from genetic_algorithm_pfm import GeneticAlgorithm
 
@@ -101,42 +103,42 @@ bounds = [[78, 102], [33, 45], [27, 45], [27, 45], [27, 45]]
 cons = [['ineq', cons_1], ['ineq', cons_2], ['ineq', cons_3], ['ineq', cons_4], ['ineq', cons_5], ['ineq', cons_6]]
 
 
-def test_non_dominance():
+def test_non_dominance(verbose=False):
     """Function to run the test automatically via pytest"""
     options = {
-        'n_bits': 20,
-        'n_iter': 500,
-        'n_pop': 500,
-        'r_cross': 0.8,
-        'max_stall': 35,
+        'n_bits': 8,
+        'n_iter': 400,
+        'n_pop': 150,
+        'r_cross': 0.9,
+        'max_stall': 200,
         'tol': 1e-15,
-        'tetra': False
+        'elitism percentage': 20
     }
     ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, cons_handler='CND', options=options)
-    score, decoded, _ = ga.run()
-    assert score < -30810
+    save_array = list()
+    for _ in range(4):
+        score, decoded, _ = ga.run(verbose=verbose)
+        assert score < -30710.00
+        save_array.append(score)
 
-    return score, decoded
+    worst = max(save_array)
+    best = min(save_array)
+    mean = np.mean(save_array)
+    std = np.std(save_array)
+
+    if verbose:
+        pprint(save_array)
+        print()
+        print(worst)
+        print(best)
+        print(mean)
+        print(std)
+
+    assert std < 100.00
+
+    return
 
 
 if __name__ == '__main__':
-    best_score, variables = test_non_dominance()
+    test_non_dominance(verbose=True)
 
-    dec = rand(2, 5)
-    dec[0, :] = variables
-    g1 = cons_1(dec)[0] + 92
-    g2 = cons_2(dec)[0]
-    g3 = cons_3(dec)[0] + 110
-    g4 = cons_4(dec)[0] - 90
-    g5 = cons_5(dec)[0] + 25
-    g6 = cons_6(dec)[0] - 20
-
-    print()
-    print(f'The optimal result = {best_score}')
-    print(f'Value of constraint 1: {g1}')
-    print(f'Value of constraint 2: {g2}')
-    print(f'Value of constraint 3: {g3}')
-    print(f'Value of constraint 4: {g4}')
-    print(f'Value of constraint 5: {g5}')
-    print(f'Value of constraint 6: {g6}')
-    print(f'For the combination of variables: {variables}')

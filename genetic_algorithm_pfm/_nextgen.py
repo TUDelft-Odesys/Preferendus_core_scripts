@@ -27,7 +27,7 @@ def _selection(pop, scores, k=3):
 
     # first random selection
     selection_ix = randint(len(pop))
-    for ix in randint(0, len(pop), k - 1):
+    for ix in randint(0, len(pop), int(len(pop)/2)):  # k - 1):
         # check if better (e.g. perform a tournament)
         if scores[ix] < scores[selection_ix]:
             selection_ix = ix
@@ -38,7 +38,6 @@ def _crossover_real(p1, p2, r_cross):
     """
     Function to create two new lists of bits from two lists from the current generation. Note that a higher r_cross
     results in a lower change current members are copied one-on-one.
-
     :param p1: first parent
     :param p2: second parent
     :param r_cross: crossover range (0 < r_cross < 1)
@@ -62,7 +61,7 @@ def _crossover(p1, p2, r_cross, approach):
     """
     Crossover two parents to create two children. Function takes two parents as basis and creates two children.
 
-    In the case of integer or boolean parents:
+    In the case of integer parents:
         If a uniform random generated value [0,1] < 0.5, parent 1 will become child 2 and vise versa.
         Else, parent 1 is child 2 and vise versa.
 
@@ -98,11 +97,7 @@ def _mutation(member, r_mut, approach, bounds):
     Mutation operator
 
     If the member of the population is an integer:
-        If a random generated number [0,1] < r_mut, the integer is replaced by a random generated integer that is
-        bounded by the same bounds as the variable it represents
-
-    If the member of the population is a boolean:
-        If a random generated number [0,1] < r_mut, the boolean is flipped
+        If a random generated number [0,1] < r_mut, a random generated integer [-1,1] is added to the integer.
 
     If the member of the population is a bitstring; for every bit in the bitstring:
         If a random generated number [0,1] < r_mut, the bit is flipped.
@@ -117,7 +112,7 @@ def _mutation(member, r_mut, approach, bounds):
         if approach[i] == 'int':
             # check for a mutation
             if rand() < r_mut:
-                member[i] = randint(bounds[i][0], bounds[i][1])  # replace the integer
+                member[i] = randint(bounds[i][0], bounds[i][1])
         elif approach[i] == 'bool':
             # check for a mutation
             if rand() < r_mut:

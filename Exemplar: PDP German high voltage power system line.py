@@ -10,8 +10,7 @@ from scipy.interpolate import pchip_interpolate
 from scipy.optimize import fsolve
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from tetra_pfm import TetraSolver
-from weighted_minmax import aggregate_max
+from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
 """
 This script contains the code to run both the a posteriori evaluation as the a priori optimization of the German high 
@@ -161,7 +160,7 @@ def objective_duration(x1, x2):
     return duration
 
 
-def objective(variabels, method='tetra'):
+def objective(variabels):
     """
     Objective function that is fed to the GA. Calles the separate preference functions that are declared above.
     Objective can be used both with Tetra as with the minmax aggregation method. Declare which to use by the method
@@ -185,14 +184,7 @@ def objective(variabels, method='tetra'):
     p_area = pchip_interpolate(x_points_2, p_points_2, area)
     p_time = pchip_interpolate(x_points_3, p_points_3, duration)
 
-    # aggregate preference scores and return this to the GA
-    w = [w1, w2, w3]
-    if method == 'minmax':
-        ret = aggregate_max(w, [p_costs, p_area, p_time], 100)
-    else:
-        ret = solver.request(w, [p_costs, p_area, p_time])
-
-    return ret
+    return [w1, w2, w3], [p_costs, p_area, p_time]
 
 
 """
@@ -233,8 +225,9 @@ print()
 
 # aggregate the preference scores and print it (see also table 10 of the reader)
 # For getting the scores, we just call the objective function instead of using the data calculated above (lines 217-219)
-aggregation_results = objective(x_array)
-data = {'Alternatives': alternatives, 'rank': ss.rankdata(aggregation_results, method='min'),
+w, p = objective(x_array)
+aggregation_results = solver.request(w, p)
+data = {'Alternatives': alternatives, 'rank': ss.rankdata(aggregation_results),
         'Aggregated scores': np.round_(np.multiply(aggregation_results, -1), 2)}
 
 df = pd.DataFrame(data)
@@ -269,11 +262,12 @@ options = {  # make dictionary with parameter settings for the GA
     'r_cross': 0.85,
     'max_stall': 10,
     'tetra': True,
+    'aggregation': 'tetra',
     'var_type_mixed': ['bool', 'real']
 }
 
 save_array_tetra = list()  # list to save the results from every run to
-ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options, args=('tetra',))
+ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options)
 
 # run the GA and print its result
 for i in range(n_runs):
@@ -298,11 +292,12 @@ options = {  # make dictionary with parameter settings for the GA
     'r_cross': 0.9,
     'max_stall': 10,
     'tetra': False,
+    'aggregation': 'minmax',
     'var_type_mixed': ['bool', 'real']
 }
 
 save_array_minmax = list()
-ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options, args=('minmax',))
+ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options)
 
 # run the GA and print its result
 for i in range(n_runs):

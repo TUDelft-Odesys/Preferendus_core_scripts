@@ -10,7 +10,8 @@ import pathlib
 import xml.etree.ElementTree as Et
 
 import urllib3
-from numpy import array, ndarray
+from decouple import config, UndefinedValueError
+from numpy import array
 from requests import post
 from requests.exceptions import HTTPError
 
@@ -24,23 +25,24 @@ class TetraSolver:
     """
 
     def __init__(self):
-        # the certificate of the server has expired, hence we need to exclude a warning
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        self.xml_file = f'{HERE}/tetra_in.xml'  # path to XML that is sent to Tetra server
+        self.xml_file = f'{HERE}/tetra_in.xml'
 
-        self.headers = {'Content-Type': 'text/xml; charset=utf-8'}  # headers for post requests
-        self.url = 'https://choicerobot.com:7997/SMXWebServices/Solve.php'  # URL of Tetra Server
+        self.headers = {'Content-Type': 'text/xml; charset=utf-8'}
+        self.url = 'https://choicerobot.com:7997/SMXWebServices/Solve.php'
 
-        self.user = 'tudelft'
-        with open(f'{HERE}/credentials.txt', 'r') as f:
-            self.password = f.read()
+        try:
+            self.user = config('USR_TETRA')
+            self.password = config('PWD_TETRA')
+        except UndefinedValueError:
+            print('Username and password are not found (missing .env file). Please fill them in now:')
+            self.user = input('Username: ')
+            self.password = input('Password: ')
 
     def _indent(self, elem, level=0):
         """
         Credits to Erick M. Sprengel for this method's code. Source: https://bit.ly/3IpXZHP
-
-        Method sets correct indent for XML file, so that it is better readable
 
         :param elem: root of your XML file
         :param level: indent level
@@ -61,103 +63,100 @@ class TetraSolver:
                 elem.tail = i
         return
 
-    def _make_xml(self, w , p):
+    def _make_xml(self, w, p):
         """
-        Method to build the XML file that is sent to the Tetra server. The basis of the document is the template
-        document template1.xml
-
-        It returns the XML tree directly. This means, the XML-file does not have to be saved and then reloaded to use it
+        Method to build the XML file that is send to the Tetra server. The basis of the document is the template
+        document.
 
         :param p: Population
         :param w: Weights
         :return: XML ElementTree
         """
 
-        criteria_count = len(p)  # count the number of criteria C
+        criteria_count = len(p)
         try:
             pop_size = len(p[0])
-        except TypeError:  # if only one alternative is added
+        except TypeError:
             pop_size = 1
 
-        start_alternatives = 3  # skip RefA1 and RefA2
+        start_alternatives = 3
         end_alternatives = start_alternatives + pop_size
 
-        tree = Et.parse(f'{HERE}/xml-templates/template1.xml')  # load template
+        tree = Et.parse(f'{HERE}/xml-templates/template1.xml')
         root = tree.getroot()
         criteria_element = root.find('Criterion')
-        comment = Et.Element('Comment')  # since comment is empty everywhere, we can create it once
+        comment = Et.Element('Comment')
 
-        for i in range(start_alternatives, end_alternatives):  # add alternatives A to XML tree root
+        for i in range(start_alternatives, end_alternatives):
             addition = Et.Element('Alternative')
             addition.append(comment)
             addition.attrib = {'Name': f'A{i - 2}', 'Type': '0'}
             root.insert(i, addition)
 
-        addition = Et.Element('Criterion')  # add criterion start again, since its place is overwritten
+        addition = Et.Element('Criterion')
         addition.append(comment)
         addition.attrib = {'Name': 'Criteria', 'IsPreferenceIncreasing': '1'}
 
-        for j in range(1, criteria_count + 1):  # add scores of alternatives per criterion C
+        for j in range(1, criteria_count + 1):
             criterion = Et.Element('Criterion')
-            criterion.attrib = {'Name': f'C{j}', 'IsPreferenceIncreasing': '1'}  # add criterion
+            criterion.attrib = {'Name': f'C{j}', 'IsPreferenceIncreasing': '1'}
             criterion.append(comment)
-            measurement = Et.Element('Measurement')  # add measurement element. Unused, but required
+            measurement = Et.Element('Measurement')
             measurement.attrib = {'Name': 'Ratings', 'Type': '0', 'DecisionMaker': 'Default User', 'SubType': '0'}
             measurement.append(comment)
-            for k in range(start_alternatives, end_alternatives):  # add scores per alternatives to element C
+            for k in range(start_alternatives, end_alternatives):
                 ruler_value = Et.Element('RulerValue')
                 try:
                     ruler_value.attrib = {'Name': f'A{k - 2}', 'Value': f'{p[j - 1][k - 3]}'}
-                except IndexError:  # if p is no n-by-m array
+                except IndexError:
                     ruler_value.attrib = {'Name': f'A{k - 2}', 'Value': f'{p[k - 3]}'}
                 measurement.append(ruler_value)
             criterion.append(measurement)
             criteria_element.append(criterion)
 
-        weights = Et.Element('Measurement')  # add weights to XML as measurement element
+        weights = Et.Element('Measurement')
         weights.attrib = {'Name': 'Criteria Weights', 'Type': '1', 'DecisionMaker': 'Default User', 'SubType': '0'}
         weights.append(comment)
         for n in range(1, criteria_count + 1):
             ruler_value = Et.Element('RulerValue')
-            ruler_value.attrib = {'Name': f'C{n}', 'Value': f'{w[n - 1]}'}  # specify weight w per criterion C
+            ruler_value.attrib = {'Name': f'C{n}', 'Value': f'{w[n - 1]}'}
             weights.append(ruler_value)
         criteria_element.append(weights)
 
-        self._indent(root)  # set correct indent for file
-        tree.write(self.xml_file, encoding='utf-8', xml_declaration=True)  # save XML tree as XML-file
-        return tree  # return XML tree
+        self._indent(root)
+        tree.write(self.xml_file, encoding='utf-8', xml_declaration=True)
+        return tree
 
     def request(self, w, p):
         """
         Method that handles the communication with the Tetra server. Gathers xml ElementTree from method make_xml and
         returns an array with the values that are returned from Tetra.
 
-        :param w: weight per criterion
-        :param p: array that contains the individual scores per criterion per member of the population
-        :return: list with aggregated scores for all alternatives
+        :param w: Weights
+        :param p: Population
+        :return: Array
         """
-        self.assertion_tests(w, p)  # assert w & p have no foreseen mistakes
+        self.assertion_tests(w, p)
         if not p:
-            return []  # if p is empty, return an empty list too
+            return []
 
-        # create XML and store it as a string to variable xml_tree
         xml_tree = Et.tostring(self._make_xml(w=w, p=p).getroot(), encoding='utf8', method='xml')
 
-        try:  # try reaching the Tetra server and post the XML-file
+        try:
             r = post(self.url, data=xml_tree, auth=(self.user, self.password), headers=self.headers, verify=False,
                      timeout=10)
             r.raise_for_status()
-        except HTTPError as err:  # if an error is raised by the server or request service, raise an HTTPError
+        except HTTPError as err:
             raise HTTPError(f'HTTP Error occurred: {err}')
 
-        values = list()
-        tree = Et.fromstring(r.content)  # make XML tree from returned content from the server
-        self._indent(tree)  # set correct indents
-        Et.ElementTree(tree).write(f'{HERE}/tetra_out.xml', encoding='utf-8', xml_declaration=True)  # save XML-file
-        for items in tree.findall('Alternative'):  # find all Alternative-elements in the XMl-tree
-            values.append(-float(items.attrib.get('Value')))  # extract values from XML and save it to the list 'values'
+        values = []
+        tree = Et.fromstring(r.content)
+        self._indent(tree)
+        Et.ElementTree(tree).write(f'{HERE}/tetra_out.xml', encoding='utf-8', xml_declaration=True)
+        for items in tree.findall('Alternative'):
+            values.append(-float(items.attrib.get('Value')))
 
-        assert len(values) == len(p[0])  # assert no data elements are lost in the process
+        assert len(values) == len(p[0])
         return values
 
     @staticmethod

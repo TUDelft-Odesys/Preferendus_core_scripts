@@ -1,19 +1,22 @@
 """
-Test function to see if the combination of the GA and Tetra is still functioning correctly.
+Test function with simple constraint handler to verify the GA.See the paper of Kuri & Quezada (1998) for the referenced
+functions and solutions.
+
+Sources:
+Kuri, Angel & Quezada, Carlos. (1998). A universal eclectic genetic algorithm for constrained optimization. Proceedings
+6th European Congress on Intelligent Techniques & Soft Computing, EUFIT'98.
 """
 import numpy as np
 from scipy.interpolate import pchip_interpolate
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from tetra_pfm import TetraSolver
 
 w1 = 0.5
 w2 = 0.5
 
-solver = TetraSolver()
-
 
 def objective(variables):
+    """Objective problem 2 of the reference paper"""
     x1 = variables[:, 0]
     x2 = variables[:, 1]
 
@@ -27,7 +30,7 @@ def objective(variables):
     p1 = pchip_interpolate([8, 36, 80], [0, 100, 0], area)
     p2 = pchip_interpolate([min_vl, mid_vl, max_vl], [0, 100, 0], vector_length)
 
-    return solver.request([w1, w2], [p1, p2])
+    return [w1, w2], [p1, p2]
 
 
 def constraint(variables):
@@ -45,11 +48,11 @@ def test_tetra(n=1):
     options = {
         'n_bits': 12,
         'n_iter': 400,
-        'n_pop': 100,
-        'r_cross': 0.85,
+        'n_pop': 250,
+        'r_cross': 0.9,
         'max_stall': 15,
         'tetra': True,
-        'tetra_method': 1
+        'aggregation': 'tetra'
     }
 
     ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, options=options)

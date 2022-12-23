@@ -3,8 +3,9 @@ import pandas as pd
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
+from scipy.optimize import LinearConstraint, milp
 
-from tetra_pfm import TetraSolver
+from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
 solver = TetraSolver()
 
@@ -17,6 +18,44 @@ c5 = 1.7
 c6 = 1.9
 
 WT0 = 100
+
+"""
+First we use MILP to solve the problem
+"""
+
+# first, define the objective function. Since it is linear, we can just provide the coefficients with which x1 and x2
+# are multiplied. Note the -1: we need to maximize, however, milp is a minimization algorithm!
+c_costs = 1 * np.array([c1 * c2, c1 * c3])
+c_wait_time = -1 * np.array([c4 * c5, c4 * c6])
+
+# next, define the constraints. For this we first provide a matrix A with all the coefficients x1 and x2 are multiplied.
+A = np.array([[1, 0], [0, 1]])
+
+# next we determine the upper bounds as vectors
+b_u = np.array([5, 8])
+
+# finally, we need to define the lower bound. In our case, these are taken as 0
+b_l = np.array([1, 3])
+
+# we can now define the LinearConstraint
+constraints = LinearConstraint(A, b_l, b_u)
+
+# the integrality array will tell the algorithm what type of variables (0 = continuous; 1 = integer) there are
+integrality = np.zeros_like(c_costs)
+
+"""Run the optimization"""
+result1 = milp(c=c_costs, constraints=constraints, integrality=integrality)
+result2 = milp(c=c_wait_time, constraints=constraints, integrality=integrality)
+
+print('Results MILP')
+print(f'Objective 1 is minimal for x1 = {result1.x[0]} and x2 = {result1.x[1]}. The costs are then {result1.fun}.')
+print(f'Objective 2 is minimal for x1 = {result2.x[0]} and x2 = {result2.x[1]}. '
+      f'The wait time is then {result2.fun + WT0}.')
+print()
+
+"""
+Below we will do the same optimisation, but now with minimize from Scipy
+"""
 
 
 # define objectives
@@ -39,17 +78,19 @@ def objective_wait_time(x):
 # run optimizations
 bounds = ((1, 5), (3, 8))
 
+"""Run the optimization"""
 result1 = minimize(objective_costs, x0=np.array([1, 1]), bounds=bounds)
 result2 = minimize(objective_wait_time, x0=np.array([1, 1]), bounds=bounds)
 
 optimal_result_O1 = result1.fun
 optimal_result_O2 = result2.fun
 
+print('Results Minimize')
 print(f'Objective 1 is minimal for x1 = {result1.x[0]} and x2 = {result1.x[1]}. The costs are then {result1.fun}.')
 print(f'Objective 2 is minimal for x1 = {result2.x[0]} and x2 = {result2.x[1]}. The wait time is then {result2.fun}.')
+print()
 
 # corner point evaluation with Tetra
-
 min_O1, max_O1 = 75, 228
 min_O2, max_O2 = 71.56, 91.12
 

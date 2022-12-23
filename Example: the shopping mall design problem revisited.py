@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from tetra_pfm import TetraSolver
 from weighted_minmax.aggregation_algorithm import aggregate_max
 
 """
@@ -20,9 +19,6 @@ script. Same as for the GA and this is all done on line 9 to 11 of this script.
 Note that the GA is an minimization algorithm. However, we do not need to multiply any objectives with -1, since the 
 aggregation scripts will account for this themself.
 """
-
-# Initialize TetraSolver
-solver = TetraSolver()
 
 # set weights for the different objectives
 w1 = 1 / 3
@@ -81,10 +77,7 @@ def objective(variables, method='tetra'):
     p_3 = objective_p3(x1, x2)
 
     # aggregate preference scores and return this to the GA
-    if method == 'minmax':
-        return aggregate_max([w1, w2, w3], [p_1, p_2, p_3], 100)
-    else:
-        return solver.request([w1, w2, w3], [p_1, p_2, p_3])
+    return [w1, w2, w3], [p_1, p_2, p_3]
 
 
 def constraint_1(variables):
@@ -136,7 +129,8 @@ options = {
     'r_cross': 0.9,
     'max_stall': 10,
     'tetra': True,
-    'var_type_mixed': ['real', 'real']
+    'aggregation': 'tetra',
+    'var_type': 'real'
 }
 
 # run the GA and print its result
@@ -155,7 +149,8 @@ options = {
     'r_cross': 0.8,
     'max_stall': 15,
     'tetra': False,
-    'var_type_mixed': ['real', 'real']
+    'aggregation': 'minmax',
+    'var_type': 'real'
 }
 
 # run the GA and print its result

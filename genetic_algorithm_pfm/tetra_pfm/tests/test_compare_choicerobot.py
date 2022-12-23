@@ -1,14 +1,9 @@
-"""
-Test to compare the output of the Tetra python wrapper to the results gathered at the server directly.
-
-(c) Harold van Heukelum, 2022
-"""
 import pathlib
 
 from numpy import loadtxt
 from numpy.testing import assert_allclose
 
-from tetra_pfm import TetraSolver
+from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
 solver = TetraSolver()
 
@@ -18,7 +13,7 @@ HERE = pathlib.Path(__file__).parent
 def test_compare_choicerobot():
     """
     Test to see if the python package TetraSolver is broken. The comparison is made with the solver on choicerobot.com
-    itself. Trows AssertionError when the result is not the same, indicating the python code (or the server) is broken.
+    itself. Trows AssertionError when the result is not the same, indicating the python code is broken.
 
     :return: None
     """

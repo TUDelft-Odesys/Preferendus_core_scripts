@@ -7,7 +7,6 @@ import numpy as np
 from scipy.interpolate import pchip_interpolate
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from tetra_pfm import TetraSolver
 from weighted_minmax.aggregation_algorithm import aggregate_max
 
 """
@@ -39,9 +38,6 @@ so use the method you are most comfortable with!
 Note that for the mask = x > 7 to work, x must be a numpy array. To learn more about this topic, see: 
 https://jakevdp.github.io/PythonDataScienceHandbook/02.06-boolean-arrays-and-masks.html
 """
-
-# Initialize TetraSolver
-solver = TetraSolver()
 
 # set weights for the different objectives
 w1 = 0.65
@@ -106,10 +102,7 @@ def objective(variables, method='tetra'):
     p_2[mask1] = 100
     p_2[mask2] = 0
 
-    if method == 'minmax':
-        return aggregate_max([w1, w2], [p_1, p_2], 100)
-    else:
-        return solver.request([w1, w2], [p_1, p_2])
+    return [w1, w2], [p_1, p_2]
 
 
 # there are no constraints
@@ -135,6 +128,7 @@ options = {
     'r_cross': 0.80,
     'max_stall': 10,
     'tetra': True,
+    'aggregation': 'tetra',
     'var_type_mixed': ['real', 'int']
 }
 
@@ -154,6 +148,7 @@ options = {
     'r_cross': 0.75,
     'max_stall': 15,
     'tetra': False,
+    'aggregation': 'minmax',
     'var_type_mixed': ['real', 'int']
 }
 

@@ -4,15 +4,10 @@ Python code for the rail level crossing operational problem exemplar
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from scipy.interpolate import pchip_interpolate, interp2d
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from tetra_pfm import TetraSolver
-
-"""
-This script contains the code to run the  a priori optimization of the rail level crossing operational problem, 
-described in chapter 6 of the reader.
-"""
 
 
 def interpolate_data(data):
@@ -35,12 +30,9 @@ w3 = 0.2
 
 # x_points: the outcomes of the objective for which a preference score is defined by the stakeholders
 # p_points: the corresponding preference scores
-x_points_1, p_points_1 = [[0, 6000, 30000], [100, 50, 0]]
+x_points_1, p_points_1 = [[3_500, 8_000, 19_000], [100, 50, 0]]
 x_points_2, p_points_2 = [[0, 0.3, 1], [0, 40, 100]]
-x_points_3, p_points_3 = [[0, 15000, 30000], [100, 40, 0]]
-
-# import Tetra solver
-solver = TetraSolver()
+x_points_3, p_points_3 = [[3_000, 7_000, 15_000], [100, 40, 0]]
 
 # import force and acceleration data
 data_force = np.loadtxt('data/Data_force_2d.csv', delimiter=';', encoding='utf-8-sig')
@@ -58,26 +50,60 @@ acc_inter = interpolate_data(data_acc)
 
 def objective_maintenance_costs(force, acc):
     """
-    Function to calculate the maintenance costs.
-
-    :param force: force on rail
-    :param acc: acceleration of rail
-    :return: maintenance costs
-    """
+    Function to calculate the maintenance costs"""
     norm_force = (force - min_force) / (max_force - min_force)
     norm_acc = (acc - min_acc) / (max_acc - min_acc)
     agg = np.sqrt(norm_force ** 2 + norm_acc ** 2)
     return agg * 15000
 
 
-def objective(variables):
-    """
-    Objective function that is fed to the GA. Calles the separate preference functions that are declared above.
+def single_objective_p1(variables):
+    """Function for single objective optimization of the maintenance costs"""
+    var1 = variables[:, 0]  # sleeper distance
+    var2 = variables[:, 1]  # number of sleepers
 
-    :param variables: array with design variable values per member of the population. Can be split by using array
-    slicing
-    :return: 1D-array with aggregated preference scores for the members of the population.
-    """
+    force = list()
+    acc = list()
+    for ix in range(len(var1)):
+        force.append(force_inter(var1[ix], var2[ix])[0])  # get force on rail for every member of the population
+        acc.append(acc_inter(var1[ix], var2[ix])[0])  # get acceleration of rail for every member of the population
+
+    return objective_maintenance_costs(np.array(force), np.array(acc))
+
+
+def single_objective_p2(variables):
+    """Function for single objective optimization of the travel comfort"""
+    var1 = variables[:, 0]  # sleeper distance
+    var2 = variables[:, 1]  # number of sleepers
+
+    acc = list()
+    for ix in range(len(var1)):
+        acc.append(acc_inter(var1[ix], var2[ix])[0])  # get acceleration of rail for every member of the population
+
+    return np.multiply(1 - (np.array(acc) - min_acc) / (max_acc - min_acc), -1)
+
+
+def single_objective_p3(variables):
+    """Function for single objective optimization of the investment costs"""
+    var1 = variables[:, 0]  # sleeper distance
+    var2 = variables[:, 1]  # number of sleepers
+
+    costs = var2 * 1000 - np.multiply(var1, var2) * 350
+    return costs
+
+
+def check_p_score(p):
+    """Function to mak sure all preference scores are in [0,100]"""
+    mask1 = p < 0
+    mask2 = p > 100
+    p[mask1] = 0
+    p[mask2] = 100
+    return p
+
+
+def objective(variables):
+    """Objective function for the GA. Calculates all sub-objectives and their corresponding preference scores. The
+    aggregation is done in the GA"""
     var1 = variables[:, 0]  # sleeper distance
     var2 = variables[:, 1]  # number of sleepers
 
@@ -93,169 +119,230 @@ def objective(variables):
     investment_costs = var2 * 1000 - np.multiply(var1, var2) * 350
 
     # calculate the preference scores
-    p_1 = pchip_interpolate(x_points_1, p_points_1, maintenance_costs)
-    p_2 = pchip_interpolate(x_points_2, p_points_2, riding_comfort)
-    p_3 = pchip_interpolate(x_points_3, p_points_3, investment_costs)
+    p_1 = check_p_score(pchip_interpolate(x_points_1, p_points_1, maintenance_costs))
+    p_2 = check_p_score(pchip_interpolate(x_points_2, p_points_2, riding_comfort))
+    p_3 = check_p_score(pchip_interpolate(x_points_3, p_points_3, investment_costs))
 
-    # check if any preference scores are > 100 or < 100. If so, they are set to 100 and 0 resp.
-    mask_higher = p_1 > 100
-    mask_lower = p_1 < 0
-    p_1[mask_higher] = 100
-    p_1[mask_lower] = 0
-
-    mask_higher = p_2 > 100
-    mask_lower = p_2 < 0
-    p_2[mask_higher] = 100
-    p_2[mask_lower] = 0
-
-    mask_higher = p_3 > 100
-    mask_lower = p_3 < 0
-    p_3[mask_higher] = 100
-    p_3[mask_lower] = 0
-
-    return solver.request([w1, w2, w3], [p_1, p_2, p_3])
+    return [w1, w2, w3], [p_1, p_2, p_3]
 
 
-"""
-Below, the a priori optimization is performed. For this, we first need to define the bounds of the design variables. 
-There are no constraints.
-
-The optimization can be ran multiple times, so you can check the consistency between the runs. The outcomes might differ
-a bit, since the GA is stochastic from nature, but the differences should be limited.
-"""
-
-# bounds setting for the 2 variables
+# set the bounds for the 2 variables
 b1 = [0.3, 0.7]  # x1
 b2 = [4, 15]  # x2
 bounds = [b1, b2]
 
-n_runs = 2
 
-# make dictionary with parameter settings for the GA run with the Tetra solver
-options = {
-    'n_bits': 6,
-    'n_iter': 400,
-    'n_pop': 100,
-    'r_cross': 0.9,
-    'max_stall': 10,
-    'tetra': True,
-    'var_type_mixed': ['real', 'int']
-}
+def print_results(x):
+    """Function that prints the results of the optimizations"""
+    print(f'Optimal result for x1 = {round(x[0], 2)}m and x2 = {round(x[1], 2)} sleepers')
 
-save_array = list()  # list to save the results from every run to
-ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options)
 
-# run the GA and print its result
-for i in range(n_runs):
-    print(f'Initialize run {i + 1}')
-    score, design_variables, _ = ga.run()
+if __name__ == '__main__':
+    ####################################################################################
+    # run single objectives and save to save_array
+    save_array = list()
+    methods = list()
 
-    print(f'Optimal result for a sleeper distance of {round(design_variables[0], 2)}m and '
-          f'{design_variables[1]} sleepers')
+    # make dictionary with parameter settings for the GA
+    options = {
+        'n_bits': 16,
+        'n_iter': 400,
+        'n_pop': 250,
+        'r_cross': 0.8,
+        'max_stall': 10,
+        'var_type_mixed': ['real', 'int']
+    }
 
-    save_array.append(design_variables)
-    print(f'Finished run {i + 1}')
+    # maintenance costs
+    ga = GeneticAlgorithm(objective=single_objective_p1, constraints=[], bounds=bounds,
+                          options=options)
+    res, design_variables_P1, _ = ga.run()
+    print_results(design_variables_P1)
+    save_array.append(design_variables_P1)
+    methods.append('SODO 1')
+    print(f'SODO maintenance costs = €{round(res, 2)}')
 
-"""
-Now we have the results, we can plot the preference functions together with the results of the optimizations.
-"""
+    # riding comfort
+    ga = GeneticAlgorithm(objective=single_objective_p2, constraints=[], bounds=bounds,
+                          options=options)
+    res, design_variables_P2, _ = ga.run()
+    print_results(design_variables_P2)
+    save_array.append(design_variables_P2)
+    methods.append('SODO 2')
+    print(f'SODO maintenance costs = {round(res, 2)}')
 
-# make numpy array of results, to allow for array splicing
-variable = np.round_(np.array(save_array), 2)
+    # investment costs
+    ga = GeneticAlgorithm(objective=single_objective_p3, constraints=[], bounds=bounds,
+                          options=options)
+    res, design_variables_P3, _ = ga.run()
+    print_results(design_variables_P3)
+    save_array.append(design_variables_P3)
+    methods.append('SODO 3')
+    print(f'SODO investment costs = €{round(res, 2)}')
 
-# create figure that shows the results in the solution space
-fig, ax = plt.subplots(figsize=(7, 7))
-ax.set_xlim((0, 1))
-ax.set_ylim((0, 20))
-ax.set_xlabel('x1: Sleeper spacing [m]')
-ax.set_ylabel('x2: Number of sleepers')
-ax.set_title('Solution space')
+    ####################################################################################
+    # run multi-objective with minmax solver
 
-# define corner points of solution space
-x_fill = [0.3, 0.7, 0.7, 0.3]
-y_fill = [4, 4, 15, 15]
+    # change some entries in the options dictionary
+    options['n_bits'] = 8
+    options['n_pop'] = 1200
+    options['r_cross'] = 0.8
+    options['tetra'] = False
+    options['aggregation'] = 'minmax'
 
-ax.fill_between(x_fill, y_fill, color='#539ecd', label='Solution space')
-ax.scatter(variable[:, 0], variable[:, 1], label='Optimal solutions Tetra', color='tab:purple')
+    ga = GeneticAlgorithm(objective=objective, constraints=[], cons_handler='CND', bounds=bounds, options=options)
+    _, design_variables_minmax, best_mm = ga.run()
+    print_results(design_variables_minmax)
+    save_array.append(design_variables_minmax)
+    methods.append('Min-max')
 
-ax.grid()  # show grid
-ax.legend()  # show legend
+    ####################################################################################
+    # run multi-objective with tetra solver
 
-# arrays for plotting continuous preference curves
-c1 = np.linspace(x_points_1[0], x_points_1[-1])  # maintenance costs
-c2 = np.linspace(x_points_2[0], x_points_2[-1])  # comfort
-c3 = np.linspace(x_points_3[0], x_points_3[-1])  # investment costs
+    # change some entries in the options dictionary
+    options['n_bits'] = 8
+    options['n_pop'] = 350
+    options['r_cross'] = 0.8
+    options['tetra'] = True
+    options['aggregation'] = 'tetra'
+    options['mutation_rate_order'] = 3
 
-# calculate the preference functions
-p1 = pchip_interpolate(x_points_1, p_points_1, c1)
-p2 = pchip_interpolate(x_points_2, p_points_2, c2)
-p3 = pchip_interpolate(x_points_3, p_points_3, c3)
+    ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options,
+                          start_points_population=[design_variables_minmax])
+    _, design_variables_tetra, best_t = ga.run()
+    print_results(design_variables_tetra)
+    save_array.append(design_variables_tetra)
+    methods.append('IMAP')
 
-f_res = list()
-a_res = list()
-for i in range(len(variable)):
-    f_res.append(force_inter(variable[:, 0][i], variable[:, 1][i])[0])  # get force on rail
-    a_res.append(acc_inter(variable[:, 0][i], variable[:, 1][i])[0])  # get acceleration of rail
+    ####################################################################################
+    # evaluate all runs
 
-# calculate individual preference scores for the results of the GA, to plot them on the preference curves
-c1_res = objective_maintenance_costs(np.array(f_res), np.array(a_res))
-c2_res = 1 - (np.array(a_res) - min_acc) / (max_acc - min_acc)
-c3_res = variable[:, 1] * 1000 - np.multiply(variable[:, 0], variable[:, 1]) * 350
+    variable = np.array(save_array)  # make ndarray
+    w, p = objective(variable)  # evaluate objective
+    r = ga.solver.request(w, p)  # get aggregated scores to rank them
 
-p1_res = pchip_interpolate(x_points_1, p_points_1, c1_res)
-p2_res = pchip_interpolate(x_points_2, p_points_2, c2_res)
-p3_res = pchip_interpolate(x_points_3, p_points_3, c3_res)
+    # create pandas DataFrame and print it to console
+    d = {'Method': methods,
+         'Results': r,
+         'Variable 1': variable[:, 0],
+         'Variable 2': variable[:, 1]
+         }
+    print()
+    print(pd.DataFrame(data=d).to_string())
+    print()
 
-# create figure that plots all preference curves and the preference scores of the returned results of the GA
-fig = plt.figure()
-ax1 = fig.add_subplot(1, 1, 1)
-ax1.plot(c1, p1, label='Preference curve')
-ax1.scatter(c1_res, p1_res, label='Optimal solution Tetra', color='tab:purple')
-ax1.set_ylim((0, 100))
-ax1.set_title('Maintenance Costs')
-ax1.set_xlabel('Maintenance Costs [€/y]')
-ax1.set_ylabel('Preference')
-ax1.grid()
-ax1.legend()
+    # create figure that shows the results in the solution space
+    markers = ['x', 'v', '1', 's', '+']
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.set_xlim((0.2, 0.8))
+    ax.set_ylim((3, 16))
+    ax.set_xlabel('x1: Sleeper spacing [m]')
+    ax.set_ylabel('x2: Number of sleepers')
+    ax.set_title('Design space')
 
-fig = plt.figure()
-ax2 = fig.add_subplot(1, 1, 1)
-ax2.plot(c2, p2, label='Preference curve')
-ax2.scatter(c2_res, p2_res, label='Optimal solution Tetra', color='tab:purple')
-ax2.set_ylim((0, 100))
-ax2.set_title('Travel Comfort')
-ax2.set_xlabel(r'Travel Comfort [$m/s^2$]')
-ax2.set_ylabel('Preference')
-ax2.grid()
-ax2.legend()
+    # define corner points of solution space
+    x_fill = [0.3, 0.7, 0.7, 0.3]
+    y_fill = [4, 4, 15, 15]
 
-fig = plt.figure()
-ax3 = fig.add_subplot(1, 1, 1)
-ax3.plot(c3 / 1000, p3, label='Preference curve')
-ax3.scatter(c3_res / 1000, p3_res, label='Optimal solution Tetra', color='tab:purple')
-ax3.set_ylim((0, 100))
-ax3.set_title('Investment Costs')
-ax3.set_xlabel(r'Investment Costs [€$*10^3$]')
-ax3.set_ylabel('Preference')
-ax3.grid()
-ax3.legend()
+    ax.fill_between(x_fill, y_fill, color='#539ecd', label='Design space')
+    for i in range(len(variable)):
+        ax.scatter(variable[i, 0], variable[i, 1], label=methods[i], marker=markers[i])
 
-df = np.loadtxt('data/data_force.txt', delimiter=',')
-da = np.loadtxt('data/data_acceleration.txt', delimiter=',')
+    ax.grid()  # show grid
+    ax.legend()  # show legend
 
-# create figures and plot the force and acceleration data
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.scatter(df[:, 0], df[:, 1], df[:, 2] * 1e-3)
-ax.set_xlabel('Sleeper Spacing', labelpad=10)
-ax.set_ylabel('Number of Sleepers', labelpad=10)
-ax.set_zlabel('RMS Force [kN]', labelpad=10)
+    # arrays for plotting continuous preference curves
+    c1 = np.linspace(x_points_1[0], x_points_1[-1])  # maintenance costs
+    c2 = np.linspace(x_points_2[0], x_points_2[-1])  # comfort
+    c3 = np.linspace(x_points_3[0], x_points_3[-1])  # investment costs
 
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.scatter(da[:, 0], da[:, 1], da[:, 2])
-ax.set_xlabel('Sleeper Spacing', labelpad=10)
-ax.set_ylabel('Number of Sleepers', labelpad=10)
-ax.set_zlabel(r'RMS Acceleration [$m/s^2$]', labelpad=10)
+    # calculate the preference functions
+    p1 = pchip_interpolate(x_points_1, p_points_1, c1)
+    p2 = pchip_interpolate(x_points_2, p_points_2, c2)
+    p3 = pchip_interpolate(x_points_3, p_points_3, c3)
 
-plt.show()
+    f_res = list()
+    a_res = list()
+    for i in range(len(variable)):
+        f_res.append(force_inter(variable[:, 0][i], variable[:, 1][i])[0])  # get force on rail
+        a_res.append(acc_inter(variable[:, 0][i], variable[:, 1][i])[0])  # get acceleration of rail
+
+    # calculate individual preference scores for the results of the GA, to plot them on the preference curves
+    c1_res = objective_maintenance_costs(np.array(f_res), np.array(a_res))
+    c2_res = 1 - (np.array(a_res) - min_acc) / (max_acc - min_acc)
+    c3_res = variable[:, 1] * 1000 - np.multiply(variable[:, 0], variable[:, 1]) * 350
+
+    p1_res = pchip_interpolate(x_points_1, p_points_1, c1_res)
+    p2_res = pchip_interpolate(x_points_2, p_points_2, c2_res)
+    p3_res = pchip_interpolate(x_points_3, p_points_3, c3_res)
+
+    d = {'Method': methods,
+         'Maintenance costs': np.round_(c1_res, 2),
+         'Travel comfort': np.round_(c2_res, 2),
+         'Investment costs': np.round_(c3_res, 2),
+         }
+    print()
+    print(pd.DataFrame(data=d).to_string())
+    print()
+
+    d = {'Method': methods,
+         'Maintenance costs': np.round_(p1_res),
+         'Travel comfort': np.round_(p2_res),
+         'Investment costs': np.round_(p3_res),
+         }
+    print()
+    print(pd.DataFrame(data=d).to_string())
+    print()
+
+    # create figure that plots all preference curves and the preference scores of the returned results of the GA
+    fig = plt.figure(figsize=(15, 5))
+    ax1 = fig.add_subplot(1, 3, 1)
+    ax1.plot(c1 * 1e-3, p1, label='Preference Function')
+    for i in range(len(c1_res)):
+        ax1.scatter(c1_res[i] * 1e-3, p1_res[i], label=methods[i], marker=markers[i])
+    ax1.set_ylim((0, 100))
+    ax1.set_title('Maintenance Costs')
+    ax1.set_xlabel(r'Maintenance Costs [€$*10^3$]')
+    ax1.set_ylabel('Preference function outcome')
+    ax1.grid()
+    fig.legend()
+
+    ax2 = fig.add_subplot(1, 3, 2)
+    ax2.plot(c2, p2, label='Preference Function')
+    for i in range(len(c1_res)):
+        ax2.scatter(c2_res[i], p2_res[i], marker=markers[i])
+    ax2.set_ylim((0, 100))
+    ax2.set_title('Travel Comfort')
+    ax2.set_xlabel(r'Travel Comfort')
+    ax2.set_ylabel('Preference function outcome')
+    ax2.grid()
+
+    ax3 = fig.add_subplot(1, 3, 3)
+    ax3.plot(c3 / 1000, p3, label='Preference Function')
+    for i in range(len(c1_res)):
+        ax3.scatter(c3_res[i] * 1e-3, p3_res[i], marker=markers[i])
+    ax3.set_ylim((0, 100))
+    ax3.set_title('Investment Costs')
+    ax3.set_xlabel(r'Investment Costs [€$*10^3$]')
+    ax3.set_ylabel('Preference function outcome')
+    ax3.grid()
+
+    df = np.loadtxt('data/data_force.txt', delimiter=',')
+    da = np.loadtxt('data/data_acceleration.txt', delimiter=',')
+
+    # create figures and plot the force and acceleration data
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(df[:, 0] * 0.05, df[:, 1], df[:, 2] * 1e-3)
+    ax.set_xlabel('Sleeper Spacing [m]', labelpad=10)
+    ax.set_ylabel('Number of Sleepers', labelpad=10)
+    ax.set_zlabel('RMS Force [kN]', labelpad=10)
+
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(da[:, 0] * 0.05, da[:, 1], da[:, 2])
+    ax.set_xlabel('Sleeper Spacing [m]', labelpad=10)
+    ax.set_ylabel('Number of Sleepers', labelpad=10)
+    ax.set_zlabel(r'RMS Acceleration [$m/s^2$]', labelpad=10)
+
+    plt.show()

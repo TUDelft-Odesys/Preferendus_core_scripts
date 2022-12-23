@@ -4,7 +4,7 @@ import pathlib
 
 from scipy.interpolate import pchip_interpolate
 
-from tetra_pfm import TetraSolver
+from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
 solver = TetraSolver()
 
@@ -13,7 +13,8 @@ HERE = pathlib.Path(__file__).parent
 
 def test_check_new_tetra():
     """
-    Test to see if the Tetra algorithms is still behaving as expected. Trows AssertionError when this is not the case.
+    Test to see if the TetraSolver is accurate up to 3 digits. The comparison is made to the 'verified' result of
+    the Matlab code. Trows AssertionError when the result is not the same.
 
     :return: None
     """

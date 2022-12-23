@@ -18,12 +18,15 @@ Copyright (c) Harold van Heukelum, 2021
 """
 from time import perf_counter
 
-from numpy import array, mean, where, unique, max, round_, count_nonzero, sqrt, exp
+# from numpy import array, mean, where, unique, zeros, allclose, max, round_, count_nonzero, sqrt, exp, floor_divide
+import numpy as np
 from numpy.random import randint, normal
 
 from ._constraints import _const_handler
 from ._decoder import _Decoding
 from ._nextgen import _selection, _mutation, _crossover
+from .tetra_pfm import TetraSolver
+from .weighted_minmax import aggregate_max
 
 
 class _Colors:
@@ -40,12 +43,12 @@ class GeneticAlgorithm:
     """
 
     def __init__(self, objective, constraints: list, bounds: list, cons_handler: str = 'simple', options: dict = None,
-                 args: tuple = None):
+                 args: tuple = None, start_points_population: list = None):
 
         """
         The following parameters can be defined in the option dictionary:
-            n_bits: Number of bits per variable, only relevant for non-integer var_types. See docstring of decode function for
-            details on specification of number of bits.
+            n_bits: Number of bits per variable, only relevant for non-integer var_types. See docstring of decode
+            function for details on specification of number of bits.
 
             n_iter: Maximum number of generations before algorithm is stopped. Prevents infinite runtimes.
 
@@ -63,9 +66,9 @@ class GeneticAlgorithm:
             var_type_mixed: List with the types of the variables. For integer, use 'int'; for bool, use 'bool; else, use
              'real'.
 
-            tetra: if the GA needs to account for Tetra (relative ranking) or not
+            tetra: if the GA needs to account for Tetra or not
 
-            method_tetra: if tetra is set to true, this sets the method for handling relative ranking
+            elitism_percentage: percentage of best members that are copied directly to the new generation
 
 
         :param objective: the function to minimize. Must be in the form f(x, *args) with x is a 2-D array of width len(bounds) and length n_pop
@@ -74,6 +77,7 @@ class GeneticAlgorithm:
         :param cons_handler: simple (default) or CND (Coello non-dominance)
         :param options: dictionary that contains all parameters for the GA. See doc string for explanation of these parameters
         :param args:
+        :param start_point_population:
         :return: list with best bitstring, the optimal result of the objective function, and the scores for the variables in x
         """
         if options is None:
@@ -86,14 +90,17 @@ class GeneticAlgorithm:
         self.tol: float = options.get('tol', 1e-15)
         self.var_type: str = options.get('var_type', None)
         self.var_type_mixed = options.get('var_type_mixed', None)
-        self.tetra = options.get('tetra', True)
+        self.tetra = options.get('tetra', False)
+        self.aggregation = options.get('aggregation', None)
+        self.elitism_percentage = options.get('elitism percentage', 15) / 100
+        self.mutation_rate_order = options.get('mutation_rate_order', 2)
 
         ####################################################################################
-        # assert if important input is correct
+        # assert if important input are correct
         assert (callable(objective)), 'Objective must be callable'
         self.objective = objective
 
-        assert self.n_pop % 2 == 0, 'N_pop must be even'  # needed for elitism
+        assert self.n_pop % 2 == 0, 'N_pop must be even'
 
         assert 0 < self.r_cross < 1, 'Crossover rate r_cross should be between 0 and 1'
 
@@ -113,11 +120,21 @@ class GeneticAlgorithm:
             print(_Colors.WARNING + 'The GA is configured for use without Tetra. Please check if this is correct!' +
                   _Colors.RESET)
 
+        assert self.aggregation in [None, 'tetra',
+                                    'minmax'], 'Wrong aggregation, should be tetra, minmax, or None (default)'
+        print(_Colors.WARNING + f'The type of aggregation is set to {self.aggregation}' +
+              _Colors.RESET)
+
         assert type(args) is tuple or args is None, 'Args must be of type tuple'
         if args is None:
             self.args = tuple()
         else:
             self.args = args
+
+        assert 0 <= self.elitism_percentage <= 1, 'Elitism percentage must be given as a value between 0 and 100'
+        self.start_point_population = start_points_population
+
+        assert 0 < self.mutation_rate_order < 5, 'An mutation rate order < 0 or > 5 is not tested.'
 
         ####################################################################################
         # create list with variable types
@@ -138,68 +155,104 @@ class GeneticAlgorithm:
         self.constraints = constraints
         self.cons_handler = cons_handler
 
-    def run(self, verbose: bool = True):
-        """
-        Run the genetic algorithm
+        self.solver = TetraSolver()
+        self.dec = _Decoding(bounds=self.bounds, n_bits=self.n_bits, approach=self.approach)
 
-        :param verbose: allow printing to console (True by default)
-        :return: the best evaluation; the best member of population; progress array
+    def _initiate_population(self):
         """
-        ####################################################################################
-        # create initial (random) population
-        r_count = 0  # r_count is used to determine mutation rate
-        pop = list([0] * self.n_pop)  # initialize list for population
+
+        :return:
+        """
+        r_count = 0
+        pop = list([0] * self.n_pop)
         for p in range(len(pop)):
-            solo = list([0] * len(self.bounds))  # initialize list for variables
+            solo = list([0] * len(self.bounds))
             for i in range(len(solo)):
-                if self.approach[i] == 'int':  # if variable is integer
+                if self.approach[i] == 'int':
                     solo[i] = randint(self.bounds[i][0], self.bounds[i][1] + 1)
                     r_count += 1
-                elif self.approach[i] == 'bool':  # if variable is boolean
+                elif self.approach[i] == 'bool':
                     solo[i] = randint(0, 2)
                     r_count += 1
-                else:  # if variable is real valued
+                else:
                     solo[i] = randint(0, 2, self.n_bits).tolist()
                     r_count += self.n_bits
-            pop[p] = solo.copy()  # don't forget .copy(), otherwise your population will be wrong
+            pop[p] = solo.copy()
+        return pop, r_count
 
-        ####################################################################################
+    def _2nd_population(self, best):
+        """
+
+        :return:
+        """
+        floor_res = np.floor_divide(self.n_pop, len(best))
+        res = self.n_pop % len(best)
+
+        pop = best * floor_res
+        for i in range(res):
+            pop.append(best[i])
+
+        return pop
+
+    def rerun_eval(self, scores, decoded):
+        """
+
+        :param scores:
+        :param decoded:
+        :return:
+        """
+        scores_arr = np.array(scores)
+        decoded_arr = np.array(decoded)
+        mask_too_low = scores_arr < -20.
+
+        if len(decoded_arr[mask_too_low]) > 1:
+            w_masked, p_masked = self.objective(decoded_arr[mask_too_low], *self.args)
+            scores_masked = self.solver.request(w_masked, p_masked)
+            scores_arr[mask_too_low] = scores_masked
+
+        return scores_arr.tolist()
+
+    def _runner(self, pop, r_count, verbose, aggregation=None):
+        """
+
+        :return:
+        """
         # set initial best and best_eval
-        best_eval = 1e6
+        best_eval = 1e12
         best = pop[randint(0, len(pop))]  # select random member of pop as initial best guess
 
         # set initial parameters
-        stall_counter = 0  # used to keep track of nr of generations that have no improvement
-        gen = 0  # generation number
-        tic = perf_counter()  # start counter for runtime
-        check_array_complete = list()  # list in which the best result of the generation is saved to check in Tetra
-        check_array_complete_bits = list()  # dito, only now in bitstring format
-
-        t = 1 / sqrt(r_count)  # mutation rate parameter
-        r_mut = t  # mutation rate
-
-        # call decoding class from _decoder.py
-        dec = _Decoding(bounds=self.bounds, n_bits=self.n_bits, approach=self.approach)
-
-        # print headers for console output of algorithm
-        if verbose:
-            print(
-                "{:<12} {:<12} {:<16} {:<12} {:<12} {:<12}".format('Generation', 'Best score', 'Mean', 'Max stall',
-                                                                   'Diversity',
-                                                                   'Number of non-feasible results'))
+        stall_counter = 0
+        gen = 0
+        plot_array = list()
+        check_array_complete = list()
+        check_array_complete_bits = list()
+        t = 1 / r_count ** (1 / self.mutation_rate_order)
+        r_mut = t
 
         # loop through generations
         for gen in range(self.n_iter):
-            best_eval_old = best_eval  # set previous best result for check later on
+            best_eval_old = best_eval
 
             # decode population. Should be np.array to make masks possible
-            decoded = array([dec.decode(p) for p in pop])
+            decoded = np.array([self.dec.decode(p) for p in pop])
 
             # check diversity:
-            check_div = round(max(unique(decoded, return_counts=True)[1]) / (len(pop) * len(pop[0])), 3)
+            check_div = round(np.max(np.unique(decoded, return_counts=True)[1]) / (len(pop) * len(pop[0])), 3)
 
-            # evaluate all candidates in the population against object and constraints
-            scores = self.objective(decoded, *self.args)
+            # evaluate all candidates in the population
+            if aggregation == 'tetra':
+                w, p = self.objective(decoded, *self.args)
+                scores = self.solver.request(w, p)
+                scores = self.rerun_eval(scores, decoded)
+
+            elif aggregation == 'minmax':
+                w, p = self.objective(decoded, *self.args)
+                scores = aggregate_max(w, p, 100)
+
+            else:
+                scores = self.objective(decoded, *self.args)
+
             scores_feasible, length_cons = _const_handler(self.cons_handler, self.constraints, decoded, scores)
 
             def print_status():
@@ -208,60 +261,80 @@ class GeneticAlgorithm:
                 """
                 if verbose:
                     print("{:<12} {:<12} {:<16} {:<12} {:<12} {:<12}".format(gen, round(best_eval, 4),
-                                                                             round(float(mean(scores_feasible)), 4),
+                                                                             round(float(np.mean(scores_feasible)), 4),
                                                                              stall_counter, check_div, length_cons))
 
-            # the evaluation of the generation is done differently when Tetra is used.
-            if self.tetra:
-                # append the best solution of current generation to list with best scores of all generation
-                check_array_complete_bits.append(pop[where(array(scores_feasible) ==
-                                                           min(scores_feasible))[0][0]])
-                check_array_complete.append(decoded[where(array(scores_feasible) ==
-                                                          min(scores_feasible))[0][0]].tolist())
+            # check for new best solution; print current bests and stall counter to console
+            if self.tetra and aggregation == 'tetra':
+                check_array_complete_bits.append(pop[np.where(np.array(scores_feasible) ==
+                                                              min(scores_feasible))[0][0]])
+                check_array_complete.append(decoded[np.where(np.array(scores_feasible) ==
+                                                             min(scores_feasible))[0][0]].tolist())
 
-                # evaluate list with all the best results against the objective
-                result = self.objective(array(check_array_complete), *self.args)
+                w, p = self.objective(np.array(check_array_complete), *self.args)
+                result = self.solver.request(w, p)
+
+                result = self.rerun_eval(result, check_array_complete)
+
                 assert len(
                     check_array_complete) == gen + 1, f'Error: len check_array {len(check_array_complete)} != ' \
                                                       f'gen nr + 1 {gen + 1}'
 
-                if result[-1] <= min(result):  # see if current generation is an improvement
+                if result[-1] <= min(result):
                     best_eval = min(scores_feasible)
-                    best = pop[where(array(scores_feasible) == min(scores_feasible))[0][0]]
+                    best = pop[np.where(np.array(scores_feasible) == min(scores_feasible))[0][0]]
+                    plot_array.append(decoded[np.where(np.array(scores_feasible) == min(scores_feasible))[0][0]])
                 else:
                     best_eval = min(result)
-                    best = check_array_complete_bits[where(array(result) == min(result))[0][0]]
+                    best = check_array_complete_bits[np.where(np.array(result) == min(result))[0][0]]
+                    plot_array.append(decoded[np.where(np.array(scores_feasible) == min(scores_feasible))[0][0]])
 
-                # round result array so 99.999999 --> 100.
-                result = array(round_(result, 3))
+                result = np.array(np.round_(result, 3))
 
                 if -100.0 in result:
-                    stall_counter = count_nonzero(result == -100.)  # stall counter = num of 100 scores in result array
+                    counter_1 = np.count_nonzero(result == -100.)
+                    counter_2 = len(result) - max(np.where(result == -100.))[0]
+                    stall_counter = max(counter_1, counter_2)
+                    # stall_counter = np.count_nonzero(result == -100.)
+                elif -50.0 in result:
+                    stall_counter = np.count_nonzero(result == -50.)
                 else:
                     stall_counter = 1
 
             else:  # normal GA evaluation
-                mask = array(scores_feasible) < best_eval
+                mask = np.array(scores_feasible) < best_eval
                 if mask.any():
                     stall_counter = 0
                     best_eval = min(scores_feasible)
-                    best = pop[where(array(scores_feasible) == min(scores_feasible))[0][0]]
+                    best = pop[np.where(np.array(scores_feasible) == min(scores_feasible))[0][0]]
+                    plot_array.append(decoded[np.where(np.array(scores_feasible) == min(scores_feasible))[0][0]])
                 if abs(best_eval_old - best_eval) < self.tol:
                     stall_counter += 1
 
-            print_status()  # print intermittent result to console
+            print_status()
             if stall_counter >= self.max_stall:
                 if verbose:
                     print(f'Stopped at gen {gen}')
                 break
 
-            # select parents for next generation
-            selected = [_selection(pop, scores_feasible) for _ in range(self.n_pop - 2)]
+            # determine the part that is elite
+            unique_scores = np.unique(scores_feasible)
+            n_elite = int(self.elitism_percentage * len(unique_scores)) - int(
+                self.elitism_percentage * len(unique_scores)) % 2
 
-            # create the next generation
-            children = [best, best]  # elitism
+            children = list()
+            if n_elite != 0:
+                elites = unique_scores[-1 * n_elite:]
+                for score in elites:
+                    for i, p in enumerate(pop):
+                        if scores_feasible[i] == score:
+                            children.append(p.copy())
+                            break
 
-            r_mut = r_mut * exp(t * normal(0, 1))  # set net mutation rate
+            # select parents for rest of new generation
+            selected = [_selection(pop, scores_feasible) for _ in range(self.n_pop - n_elite)]
+
+            r_mut = r_mut * np.exp(t * normal(0, 1))
             for i in range(0, len(selected), 2):
                 # get selected parents in pairs
                 p1, p2 = selected[i], selected[i + 1]
@@ -279,20 +352,62 @@ class GeneticAlgorithm:
             assert len(pop) == self.n_pop, f'Pop array is not equal after children are made. ' \
                                            f'It is now {len(pop)} and should be n_pop = {self.n_pop}'
 
-        # after final result is attained:
-        decoded = dec.decode(best)  # get final values for variables
-        toc = perf_counter()  # get end time
+        if gen == self.n_iter - 1:
+            print(_Colors.FAIL + 'The iteration is stopped since the max number is reached. The results might be '
+                                 'incorrect! Please be cautious.' + _Colors.RESET)
+        elif gen < 1.1 * self.max_stall:
+            print(
+                _Colors.FAIL + 'The number of generations is terribly close to the number of max stall iterations. '
+                               'This suggests a too fast convergence and wrong results.')
+            print('Please be careful in using these results and assume they are wrong unless proven otherwise!'
+                  + _Colors.RESET)
+
+        decoded = self.dec.decode(best)  # get final values for variables
+        return best_eval, decoded, best
+
+    def run(self, verbose: bool = True):
+        """
+        Run the genetic algorithm
+
+        :param verbose: allow printing to console (True by default)
+        :return: the best evaluation; the best member of population; progress array
+        """
+        tic = perf_counter()
+
+        ####################################################################################
+        # create initial (random) population
+        pop, r_count = self._initiate_population()
+
+        ####################################################################################
+        # run optimization
+
+        # print headers for console output of algorithm
+        if verbose:
+            print(
+                "{:<12} {:<12} {:<16} {:<12} {:<12} {:<12}".format('Generation', 'Best score', 'Mean', 'Max stall',
+                                                                   'Diversity',
+                                                                   'Number of non-feasible results'))
+
+        if self.aggregation == 'tetra':
+            if self.start_point_population is None:
+                print(_Colors.WARNING + 'No initial starting point for the optimization with tetra is given. A random '
+                                        'population is generated.' + _Colors.RESET)
+            else:
+                best = [self.dec.inverse_decode(member) for member in self.start_point_population]
+                pop = self._2nd_population(best)
+
+            best_eval, decoded, best = self._runner(pop, r_count, verbose, aggregation='tetra')
+        elif self.aggregation == 'minmax':
+            best_eval, decoded, best = self._runner(pop, r_count, verbose, aggregation='minmax')
+
+        else:
+            best_eval, decoded, best = self._runner(pop, r_count, verbose)
+
+        ####################################################################################
+        # print timer
+        toc = perf_counter()
 
         if verbose:
             print(f'Execution time was {toc - tic:0.4f} seconds')
 
-        if gen == self.n_iter - 1:
-            print(_Colors.FAIL + 'The iteration is stopped since the max number is reached. The results might be '
-                                 'incorrect! Please be cautious.' + _Colors.RESET)
-        elif gen < self.max_stall + 5:
-            print(_Colors.FAIL + 'The number of generations is terribly close to the number of max stall iterations. '
-                                 'This suggests a too fast convergence and wrong results.')
-            print('Please be careful in using these results and assume they are wrong unless proven otherwise!'
-                  + _Colors.RESET)
-
-        return [best_eval, decoded, check_array_complete]
+        return [best_eval, decoded, best]

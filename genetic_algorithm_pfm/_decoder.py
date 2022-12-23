@@ -29,8 +29,7 @@ class _Decoding:
 
     def decode(self, member):
         """
-        Decode member of population. Only real valued members are stored as bitstrings. Hence, all other types are
-        returned directly.
+        Decode member of population
 
         :param member: member of population
         :return: list with decoded variables
@@ -58,4 +57,36 @@ class _Decoding:
         integer = int(chars, 2)
 
         # scale integer to desired range
+        ret = bounds[0] + (integer / self.largest_value) * (bounds[1] - bounds[0])
+        if ret > 7000:
+            print(len(substring))
+            print(bounds[0])
+            print(integer)
+            print(self.largest_value)
+            print(bounds[1])
+            raise ValueError('X2 > 7000. Je script is kapot!')
         return bounds[0] + (integer / self.largest_value) * (bounds[1] - bounds[0])
+
+    def inverse_decode(self, decoded):
+        """
+
+        :param decoded:
+        :return:
+        """
+        bitstring = list()
+        for i in range(len(self.bounds)):
+            if self.approach[i] == 'real':
+                integer = int(((decoded[i] - self.bounds[i][0]) * self.largest_value) / (
+                        self.bounds[i][1] - self.bounds[i][0])) - 1
+                bits = self.n_bits  # int(max(8, math.log(integer, 2) + 1))
+                bitstring.append([1 if integer & (1 << (bits - 1 - n)) else 0 for n in range(bits)])
+            else:
+                bitstring.append(decoded[i])
+        return bitstring
+
+
+if __name__ == '__main__':
+    cls = _Decoding([[0, 3000], [0, 7000]], 16, ['real', 'real'])
+    bs = cls.inverse_decode([58, 7000])
+    print(bs)
+    print(cls.decode(bs))

@@ -9,7 +9,7 @@ import scipy.stats as ss
 from scipy.interpolate import pchip_interpolate
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from tetra_pfm import TetraSolver
+from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
 """
 This script contains the code to run both the a posteriori evaluation as the a priori optimization of the Bergen Light 
@@ -96,7 +96,7 @@ def objective(variables):
     p_4 = pchip_interpolate(x_points_4, p_points_4, objective_project_team(x1))
 
     # aggregate preference scores and return this to the GA
-    return solver.request([w1, w2, w3, w4], [p_1, p_2, p_3, p_4])
+    return [w1, w2, w3, w4], [p_1, p_2, p_3, p_4]
 
 
 """
@@ -142,7 +142,8 @@ print()
 
 # aggregate the preference scores and print it (see also table 10 of the reader)
 # For getting the scores, we just call the objective function instead of using the data calculated above (lines 123-131)
-aggregation_results = objective(x_array)
+w, p = objective(x_array)
+aggregation_results = solver.request(w, p)
 data = {'Alternatives': alternatives, 'rank': ss.rankdata(aggregation_results, method='min'),
         'Aggregated scores': np.round_(np.multiply(aggregation_results, -1), 2)}
 
@@ -175,6 +176,7 @@ options = {
     'r_cross': 0.8,
     'max_stall': 10,
     'tetra': True,
+    'aggregation': 'tetra',
     'var_type_mixed': ['int', 'real']
 }
 

@@ -3,7 +3,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 
-from tetra_pfm import TetraSolver
+from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
 solver = TetraSolver()
 
@@ -42,10 +42,17 @@ result2 = minimize(objective_availability, x0=np.array([1, 1]), bounds=bounds, c
 optimal_result_O1 = -1 * result1.fun
 optimal_result_O2 = -1 * result2.fun
 
-print(
-    f'Objective 1 is minimal for x1 = {result1.x[0]} and x2 = {result1.x[1]}. The comfort are then {-1 * result1.fun}.')
-print(
-    f'Objective 2 is minimal for x1 = {result2.x[0]} and x2 = {result2.x[1]}. The availability is then {-1 * result2.fun}.')
+if result1.success:
+    print(f'Objective 1 is minimal for x1 = {result1.x[0]} and x2 = {result1.x[1]}. The comfort are then {-1 * result1.fun}.')
+else:
+    print('Problem with optimization (result1), cannot find a solution')
+    print(result1)
+
+if result2.success:
+    print(f'Objective 2 is minimal for x1 = {result2.x[0]} and x2 = {result2.x[1]}. The availability is then {-1 * result2.fun}.')
+else:
+    print('Problem with optimization (result2), cannot find a solution')
+    print(result2)
 
 # plot graphical solution
 fig, ax = plt.subplots(figsize=(8, 6))

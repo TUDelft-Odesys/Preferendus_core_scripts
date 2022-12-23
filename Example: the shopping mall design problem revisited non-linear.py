@@ -6,7 +6,6 @@ import numpy as np
 from scipy.interpolate import pchip_interpolate
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from tetra_pfm import TetraSolver
 
 """
 This script is fairly similar to the non-linear shopping mall example. Only the preference functions for objective 1 and
@@ -16,13 +15,10 @@ Note that the non-linear preference curves are created by using an interpolation
 For more about this see chapter 4 of the reader and the documentation of scipy.
 """
 
-# Initialize TetraSolver
-solver = TetraSolver()
-
 # set weights for the different objectives
-w1 = 0.30
-w2 = 0.25
-w3 = 0.45
+w1 = 0.25
+w2 = 0.50
+w3 = 0.25
 
 
 def objective_p1(x1, x2):
@@ -32,7 +28,7 @@ def objective_p1(x1, x2):
     :param x1: 1st design variable
     :param x2: 2nd design variable
     """
-    return pchip_interpolate([0, 300000, 1400000], [0, 80, 100], (160 * x1 + 80 * x2))
+    return pchip_interpolate([240000, 450000, 1400000], [0, 65, 100], (160 * x1 + 80 * x2))
 
 
 def objective_p2(x1, x2):
@@ -42,7 +38,7 @@ def objective_p2(x1, x2):
     :param x1: 1st design variable
     :param x2: 2nd design variable
     """
-    return pchip_interpolate([0, 300000, 750000], [0, 80, 100], (120 * x1 + 30 * x2 - 90000))
+    return pchip_interpolate([90000, 200000, 750000], [100, 30, 0], (120 * x1 + 30 * x2))
 
 
 def objective_p3(x1, x2):
@@ -52,7 +48,7 @@ def objective_p3(x1, x2):
     :param x1: 1st design variable
     :param x2: 2nd design variable
     """
-    return (1 / 3150) * (15 * x1 + 45 * x2 - 45000)
+    return pchip_interpolate([45000, 200000, 360000], [0, 80, 100], (15 * x1 + 45 * x2))
 
 
 def objective(variables):
@@ -73,7 +69,7 @@ def objective(variables):
     p_3 = objective_p3(x1, x2)
 
     # aggregate preference scores and return this to the GA
-    return solver.request([w1, w2, w3], [p_1, p_2, p_3])
+    return [w1, w2, w3], [p_1, p_2, p_3]
 
 
 def constraint_1(variables):
@@ -115,13 +111,14 @@ configure the GA, see the docstring of GeneticAlgorithm (via help()) or chapter 
 
 # make dictionary with parameter settings for the GA run with the Tetra solver
 options = {
-    'n_bits': 16,
+    'n_bits': 8,
     'n_iter': 400,
-    'n_pop': 350,
-    'r_cross': 0.85,
-    'max_stall': 15,
+    'n_pop': 500,
+    'r_cross': 0.8,
+    'max_stall': 8,
     'tetra': True,
-    'var_type_mixed': ['real', 'real']
+    'aggregation': 'tetra',
+    'var_type': 'real'
 }
 
 # run the GA and print its result
@@ -139,7 +136,7 @@ space. Secondly, we can plot the preference functions together with the results 
 
 # create figure that shows the results in the solution space
 fig, ax = plt.subplots(figsize=(7, 7))
-ax.set_xlim((0, 9000))
+ax.set_xlim((-200, 9000))
 ax.set_ylim((0, 9000))
 ax.set_xlabel('x1 [m2]')
 ax.set_ylabel('x2 [m2]')
@@ -150,30 +147,30 @@ x_fill = [0, 3000, 5000, 5000, 3000, 0]
 y_fill = [7000, 7000, 5000, 0, 0, 3000]
 
 ax.fill_between(x_fill, y_fill, color='#539ecd', label='Solution space')
-ax.scatter(design_variables_tetra[0], design_variables_tetra[1], label='Optimal solution Tetra')
+ax.scatter(design_variables_tetra[0], design_variables_tetra[1], color='tab:purple', label='Optimal solution Tetra')
 
 ax.grid()  # show grid
 fig.legend()  # show legend
 
 # create arrays for plotting continuous preference curves
-c1 = np.linspace(0, 1200000)
-c2 = np.linspace(0, 750000)
-c3 = np.linspace(0, 360000)
+c1 = np.linspace(240000, 1200000)
+c2 = np.linspace(90000, 750000)
+c3 = np.linspace(45000, 360000)
 
 # calculate the preference functions
-p1 = pchip_interpolate([0, 300000, 1400000], [0, 80, 100], c1)
-p2 = pchip_interpolate([0, 200000, 750000], [0, 80, 100], c2)
-p3 = (1 / 3150) * (c3 - 45000)
+p1 = pchip_interpolate([240000, 450000, 1400000], [0, 65, 100], c1)
+p2 = pchip_interpolate([90000, 200000, 750000], [100, 30, 0], c2)
+p3 = pchip_interpolate([45000, 200000, 360000], [0, 80, 100], c3)
 
 # calculate individual preference scores for the results of the GA, to plot them on the preference curves
 c1_res = (160 * design_variables_tetra[0] + 80 * design_variables_tetra[1])
-p1_res = pchip_interpolate([0, 300000, 1400000], [0, 80, 100], c1_res)
+p1_res = pchip_interpolate([240000, 450000, 1400000], [0, 65, 100], c1_res)
 
 c2_res = (120 * design_variables_tetra[0] + 30 * design_variables_tetra[1])
-p2_res = pchip_interpolate([0, 200000, 750000], [0, 80, 100], c2_res)
+p2_res = pchip_interpolate([90000, 200000, 750000], [100, 30, 0], c2_res)
 
 c3_res = (15 * design_variables_tetra[0] + 45 * design_variables_tetra[1])
-p3_res = (1 / 3150) * (c3_res - 45000)
+p3_res = pchip_interpolate([45000, 200000, 360000], [0, 80, 100], c3_res)
 
 # create figure that plots all preference curves and the preference scores of the returned results of the GA
 fig = plt.figure()

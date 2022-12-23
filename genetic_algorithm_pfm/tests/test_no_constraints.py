@@ -12,7 +12,7 @@ from genetic_algorithm_pfm import GeneticAlgorithm
 
 
 def test_ackley(verbose=False):
-    """Test to see if algorithm is functioning correctly. Runs automatically via pytest."""
+    """Test to see if algorithm is correct. runs automatically via pytest."""
 
     def test_objective(x):
         """Ackley function. Minimal at x,y = 0,0 for 5 < x,y < 5"""
@@ -31,7 +31,6 @@ def test_ackley(verbose=False):
         'r_cross': 0.9,
         'max_stall': 32,
         'tol': 1e-15,
-        'tetra': False
     }
 
     sol = list()
@@ -62,8 +61,8 @@ def test_ackley(verbose=False):
     return
 
 
-def test_rastrigin():
-    """Test to see if algorithm is functioning correctly. Runs automatically via pytest"""
+def test_rastrigin(verbose=False):
+    """Test to see if algorithm is correct. Runs automatically via pytest"""
     a = 10
     n = 6
 
@@ -92,12 +91,12 @@ def test_rastrigin():
         'r_cross': 0.9,
         'max_stall': 15,
         'tol': 1e-15,
-        'tetra': False
+        'sexes_divider': 0.85
     }
     sol = list()
     ga = GeneticAlgorithm(objective=test_objective, constraints=cons, bounds=bounds, options=options)
     for _ in range(10):
-        score, decoded, _ = ga.run(verbose=False)
+        score, decoded, _ = ga.run(verbose=verbose)
 
         assert_allclose(actual=decoded, desired=[0] * 6, rtol=1e-4, atol=5e-4, err_msg='Algorithm is broken')
         sol.append(decoded)
