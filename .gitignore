@@ -11,3 +11,5 @@ save_*.txt
 */analysis_*/
 /notepads/
 */.idea/*
+*/.DS_Store
+*.DS_Store
