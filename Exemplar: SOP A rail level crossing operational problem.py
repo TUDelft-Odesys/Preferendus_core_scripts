@@ -9,6 +9,11 @@ from scipy.interpolate import pchip_interpolate, interp2d
 
 from genetic_algorithm_pfm import GeneticAlgorithm
 
+# todo: fix DeprecationWarning from interp2d!
+import warnings
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 
 def interpolate_data(data):
     """
@@ -23,17 +28,6 @@ def interpolate_data(data):
     return interp2d(x, y, z, kind='cubic')
 
 
-# weights setting, weights can be adjusted between runs to check for outcome changes
-w1 = 0.4
-w2 = 0.4
-w3 = 0.2
-
-# x_points: the outcomes of the objective for which a preference score is defined by the stakeholders
-# p_points: the corresponding preference scores
-x_points_1, p_points_1 = [[3_500, 8_000, 19_000], [100, 50, 0]]
-x_points_2, p_points_2 = [[0, 0.3, 1], [0, 40, 100]]
-x_points_3, p_points_3 = [[3_000, 7_000, 15_000], [100, 40, 0]]
-
 # import force and acceleration data
 data_force = np.loadtxt('data/Data_force_2d.csv', delimiter=';', encoding='utf-8-sig')
 data_acc = np.loadtxt('data/Data_acceleration_2d.csv', delimiter=';', encoding='utf-8-sig')
@@ -46,6 +40,17 @@ min_acc = np.amin(data_acc) - 0.01
 # get interpolated functions for force and acceleration
 force_inter = interpolate_data(data_force)
 acc_inter = interpolate_data(data_acc)
+
+# weights setting, weights can be adjusted between runs to check for outcome changes
+w1 = 0.4
+w2 = 0.4
+w3 = 0.2
+
+# x_points: the outcomes of the objective for which a preference score is defined by the stakeholders
+# p_points: the corresponding preference scores
+x_points_1, p_points_1 = [[3_500, 8_000, 19_000], [100, 50, 0]]
+x_points_2, p_points_2 = [[0, 0.3, 1], [0, 40, 100]]
+x_points_3, p_points_3 = [[3_000, 7_000, 15_000], [100, 40, 0]]
 
 
 def objective_maintenance_costs(force, acc):
@@ -231,7 +236,7 @@ if __name__ == '__main__':
     print(pd.DataFrame(data=d).to_string())
     print()
 
-    # create figure that shows the results in the solution space
+    # create figure that shows the results in the design space
     markers = ['x', 'v', '1', 's', '+']
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.set_xlim((0.2, 0.8))
@@ -240,7 +245,7 @@ if __name__ == '__main__':
     ax.set_ylabel('x2: Number of sleepers')
     ax.set_title('Design space')
 
-    # define corner points of solution space
+    # define corner points of design space
     x_fill = [0.3, 0.7, 0.7, 0.3]
     y_fill = [4, 4, 15, 15]
 
@@ -327,8 +332,8 @@ if __name__ == '__main__':
     ax3.set_ylabel('Preference function outcome')
     ax3.grid()
 
-    df = np.loadtxt('data/data_force.txt', delimiter=',')
-    da = np.loadtxt('data/data_acceleration.txt', delimiter=',')
+    df = np.loadtxt('data/Data_force.txt', delimiter=',')
+    da = np.loadtxt('data/Data_acceleration.txt', delimiter=',')
 
     # create figures and plot the force and acceleration data
     fig = plt.figure(figsize=(10, 10))

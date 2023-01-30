@@ -18,7 +18,6 @@ Copyright (c) Harold van Heukelum, 2021
 """
 from time import perf_counter
 
-# from numpy import array, mean, where, unique, zeros, allclose, max, round_, count_nonzero, sqrt, exp, floor_divide
 import numpy as np
 from numpy.random import randint, normal
 
@@ -66,9 +65,13 @@ class GeneticAlgorithm:
             var_type_mixed: List with the types of the variables. For integer, use 'int'; for bool, use 'bool; else, use
              'real'.
 
-            tetra: if the GA needs to account for Tetra or not
+            aggregation: the GA can be used as an ordinary GA by setting the aggregation to None (default). To call the
+            Preferendus, set this value to either 'tetra' or 'minmax' (depending on the method you want to use).
 
-            elitism_percentage: percentage of best members that are copied directly to the new generation
+            mutation_rate_order: The mutation can be influenced via this parameter (default: 2).
+
+            elitism percentage: this parameter influences the percentage of the population that is considered in the
+            elitism (default: 15%)
 
 
         :param objective: the function to minimize. Must be in the form f(x, *args) with x is a 2-D array of width len(bounds) and length n_pop
@@ -76,8 +79,7 @@ class GeneticAlgorithm:
         :param bounds: boundaries for variables in x. Every variable in x should have a boundary!
         :param cons_handler: simple (default) or CND (Coello non-dominance)
         :param options: dictionary that contains all parameters for the GA. See doc string for explanation of these parameters
-        :param args:
-        :param start_point_population:
+        :param start_points_population: list containing the starting points for the GA (when given, otherwise a random population is created)
         :return: list with best bitstring, the optimal result of the objective function, and the scores for the variables in x
         """
         if options is None:
@@ -90,7 +92,6 @@ class GeneticAlgorithm:
         self.tol: float = options.get('tol', 1e-15)
         self.var_type: str = options.get('var_type', None)
         self.var_type_mixed = options.get('var_type_mixed', None)
-        self.tetra = options.get('tetra', False)
         self.aggregation = options.get('aggregation', None)
         self.elitism_percentage = options.get('elitism percentage', 15) / 100
         self.mutation_rate_order = options.get('mutation_rate_order', 2)
@@ -113,12 +114,6 @@ class GeneticAlgorithm:
             for item in self.var_type_mixed:
                 assert item in ['int', 'bool', 'real'], "Type of variable in var_type_mixed must be 'int', 'bool or " \
                                                         "'real'"
-
-        try:
-            assert self.tetra is True or self.tetra == 1
-        except AssertionError:
-            print(_Colors.WARNING + 'The GA is configured for use without Tetra. Please check if this is correct!' +
-                  _Colors.RESET)
 
         assert self.aggregation in [None, 'tetra',
                                     'minmax'], 'Wrong aggregation, should be tetra, minmax, or None (default)'
@@ -228,7 +223,7 @@ class GeneticAlgorithm:
         check_array_complete = list()
         check_array_complete_bits = list()
         t = 1 / r_count ** (1 / self.mutation_rate_order)
-        r_mut = t
+        r_mut = t  # default value for first iteration
 
         # loop through generations
         for gen in range(self.n_iter):
@@ -265,7 +260,7 @@ class GeneticAlgorithm:
                                                                              stall_counter, check_div, length_cons))
 
             # check for new best solution; print current bests and stall counter to console
-            if self.tetra and aggregation == 'tetra':
+            if aggregation == 'tetra':
                 check_array_complete_bits.append(pop[np.where(np.array(scores_feasible) ==
                                                               min(scores_feasible))[0][0]])
                 check_array_complete.append(decoded[np.where(np.array(scores_feasible) ==

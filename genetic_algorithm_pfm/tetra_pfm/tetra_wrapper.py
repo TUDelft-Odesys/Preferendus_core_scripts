@@ -10,7 +10,6 @@ import pathlib
 import xml.etree.ElementTree as Et
 
 import urllib3
-from decouple import config, UndefinedValueError
 from numpy import array
 from requests import post
 from requests.exceptions import HTTPError
@@ -32,13 +31,9 @@ class TetraSolver:
         self.headers = {'Content-Type': 'text/xml; charset=utf-8'}
         self.url = 'https://choicerobot.com:7997/SMXWebServices/Solve.php'
 
-        try:
-            self.user = config('USR_TETRA')
-            self.password = config('PWD_TETRA')
-        except UndefinedValueError:
-            print('Username and password are not found (missing .env file). Please fill them in now:')
-            self.user = input('Username: ')
-            self.password = input('Password: ')
+        self.user = 'tudelft'
+        with open(f'{HERE}/credentials.txt', 'r') as f:
+            self.password = f.read()
 
     def _indent(self, elem, level=0):
         """

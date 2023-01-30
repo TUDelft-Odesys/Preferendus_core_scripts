@@ -168,14 +168,13 @@ bounds = [b1, b2]
 n_runs = 2
 
 # make dictionary with parameter settings for the GA
-print('Run Tetra')
+print('Run IMAP')
 options = {
     'n_bits': 20,
     'n_iter': 400,
     'n_pop': 350,
     'r_cross': 0.8,
     'max_stall': 10,
-    'tetra': True,
     'aggregation': 'tetra',
     'var_type_mixed': ['int', 'real']
 }
@@ -198,20 +197,20 @@ Now we have the results, we can make some figures. First, the resulting design v
 space. Secondly, we can plot the preference functions together with the results of the optimizations.
 """
 
-# create figure that shows the results in the solution space
+# create figure that shows the results in the design space
 fig, ax = plt.subplots(figsize=(7, 7))
 ax.set_xlim((0, 15))
 ax.set_ylim((0, 25))
 ax.set_xlabel('x1 [Number of stations]')
 ax.set_ylabel('x2 [Number of trains per hour]')
-ax.set_title('Solution space')
+ax.set_title('Design space')
 
-# define corner points of solution space
+# define corner points of design space
 x_fill = [3, 10, 10, 3]
 y_fill = [20, 20, 2, 2]
 
-ax.fill_between(x_fill, y_fill, color='#539ecd', label='Solution space')
-ax.scatter(np.array(save_array)[:, 0], np.array(save_array)[:, 1], label='Optimal solution Tetra')
+ax.fill_between(x_fill, y_fill, color='#539ecd', label='Design space')
+ax.scatter(np.array(save_array)[:, 0], np.array(save_array)[:, 1], label='Optimal solution IMAP')
 ax.scatter([9], [12], label='As-built', marker='p', color='r')
 
 ax.grid()  # show grid
@@ -259,7 +258,7 @@ p4_res_actual = pchip_interpolate(x_points_4, p_points_4, c4_res_actual)
 fig = plt.figure()
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(c1, p1, zorder=3, label='Preference curve')
-ax1.scatter(c1_res, p1_res, label='Optimal solution Tetra', color='tab:purple', zorder=1)
+ax1.scatter(c1_res, p1_res, label='Optimal solution IMAP', color='tab:purple', zorder=1)
 ax1.scatter(c1_res_actual, p1_res_actual, label='As built', marker='p', color='r', zorder=1)
 ax1.set_xlim((0, 5500000))
 ax1.set_ylim((0, 100))
@@ -272,7 +271,7 @@ ax1.grid()
 fig = plt.figure()
 ax2 = fig.add_subplot(1, 1, 1)
 ax2.plot(c2, p2, zorder=3, label='Preference curve')
-ax2.scatter(c2_res, p2_res, label='Optimal solution Tetra', color='tab:purple', zorder=1)
+ax2.scatter(c2_res, p2_res, label='Optimal solution IMAP', color='tab:purple', zorder=1)
 ax2.scatter(c2_res_actual, p2_res_actual, label='As built', marker='p', color='tab:red', zorder=1)
 ax2.set_xlim((0, 60))
 ax2.set_ylim((0, 100))
@@ -285,7 +284,7 @@ ax2.grid()
 fig = plt.figure()
 ax3 = fig.add_subplot(1, 1, 1)
 ax3.plot(c3, p3, zorder=3, label='Preference curve')
-ax3.scatter(c3_res, p3_res, label='Optimal solution Tetra', color='tab:purple', zorder=1)
+ax3.scatter(c3_res, p3_res, label='Optimal solution IMAP', color='tab:purple', zorder=1)
 ax3.scatter(c3_res_actual, p3_res_actual, label='As built', marker='p', color='tab:red', zorder=1)
 ax3.set_xlim((0, 1500000))
 ax3.set_ylim((0, 100))
@@ -298,7 +297,7 @@ ax3.grid()
 fig = plt.figure()
 ax4 = fig.add_subplot(1, 1, 1)
 ax4.plot(c4, p4, zorder=3, label='Preference curve')
-ax4.scatter(c4_res, p4_res, label='Optimal solution Tetra', color='tab:purple')
+ax4.scatter(c4_res, p4_res, label='Optimal solution IMAP', color='tab:purple')
 ax4.scatter(c4_res_actual, p4_res_actual, label='As built', marker='p', color='tab:red')
 ax4.set_xlim((0, 7))
 ax4.set_ylim((0, 100))

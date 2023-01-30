@@ -2,6 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
+import pandas as pd
 
 from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
@@ -43,16 +44,68 @@ optimal_result_O1 = -1 * result1.fun
 optimal_result_O2 = -1 * result2.fun
 
 if result1.success:
-    print(f'Objective 1 is minimal for x1 = {result1.x[0]} and x2 = {result1.x[1]}. The comfort are then {-1 * result1.fun}.')
+    print(f'Objective 1 is maximal for x1 = {result1.x[0]} and x2 = {result1.x[1]}. '
+          f'The comfort are then {round(-1 * result1.fun, 2)}.')
 else:
     print('Problem with optimization (result1), cannot find a solution')
     print(result1)
 
 if result2.success:
-    print(f'Objective 2 is minimal for x1 = {result2.x[0]} and x2 = {result2.x[1]}. The availability is then {-1 * result2.fun}.')
+    print(f'Objective 2 is maximal for x1 = {result2.x[0]} and x2 = {result2.x[1]}. '
+          f'The availability is then {round(-1 * result2.fun, 2)}.')
 else:
     print('Problem with optimization (result2), cannot find a solution')
     print(result2)
+
+"""
+Below, all corner points are evaluated in Tetra
+"""
+
+
+def preference_P1(variables):
+    x1 = variables[:, 0]
+    x2 = variables[:, 1]
+
+    comfort = objective_comfort([x1, x2])
+    return 25 * comfort / 13 - 1750 / 13
+
+
+def preference_P2(variables):
+    x1 = variables[:, 0]
+    x2 = variables[:, 1]
+
+    availability = objective_availability([x1, x2])
+    return 5 * availability / 12 - 125 / 3
+
+
+alternatives = np.array([
+    [1, 10],
+    [1, 100],
+    [52, 10],
+    [52, 100]
+])
+
+P1 = preference_P1(alternatives)
+P2 = preference_P2(alternatives)
+
+w = [0.5, 0.5]  # weights are equal here
+p = [P1, P2]
+
+ret = solver.request(w, p)
+
+# add results to DataFrame and print it
+results = np.zeros((4, 3))
+results[:, 0] = alternatives[:, 0]
+results[:, 1] = alternatives[:, 1]
+results[:, 2] = np.multiply(-1, ret)
+
+df = pd.DataFrame(np.round_(results, 2), columns=['x1', 'x2', 'Aggregated preference'])
+print(df.to_string())
+print()
+
+"""
+The graphical solution can also be plotted
+"""
 
 # plot graphical solution
 fig, ax = plt.subplots(figsize=(8, 6))

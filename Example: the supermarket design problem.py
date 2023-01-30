@@ -7,7 +7,6 @@ import numpy as np
 from scipy.interpolate import pchip_interpolate
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from weighted_minmax.aggregation_algorithm import aggregate_max
 
 """
 This script is fairly similar to the shopping mall examples. Since the objective functions are a bit more complex, the 
@@ -72,15 +71,14 @@ def objective_p2(x1, x2):
     return pchip_interpolate([0, 1.2, 2], [0, 100, 60], x2 / (20_000 * x1 / 400))
 
 
-def objective(variables, method='tetra'):
+def objective(variables):
     """
     Objective function that is fed to the GA. Calles the separate preference functions that are declared above.
-    Objective can be used both with Tetra as with the minmax aggregation method. Declare which to use by the method
+    Objective can be used both with IMAP as with the minmax aggregation method. Declare which to use by the method
     argument.
 
     :param variables: array with design variable values per member of the population. Can be split by using array
     slicing
-    :param method: which aggregation method to use: 'tetra' or 'minmax'. Defaults to 'tetra'
     :return: 1D-array with aggregated preference scores for the members of the population.
     """
     # extract 1D design variable arrays from full 'variables' array
@@ -114,31 +112,30 @@ b2 = [800, 30_000]  # x2
 bounds = [b1, b2]
 
 """
-Now we have everything for the optimization, we can run it. Two runs are made with the GA: the first with the Tetra 
+Now we have everything for the optimization, we can run it. Two runs are made with the GA: the first with the IMAP 
 solver, the second with the minmax solver. Both require a different configuration of the GA, so you will see two 
 different dictionaries called 'options', one for each run. For more information about the different options, see the 
 docstring of GeneticAlgorithm (via help()) or chapter 4 of the reader.
 """
 
-# make dictionary with parameter settings for the GA run with the Tetra solver
+# make dictionary with parameter settings for the GA run with the IMAP solver
 options = {
     'n_bits': 16,
     'n_iter': 400,
     'n_pop': 1100,
     'r_cross': 0.80,
     'max_stall': 10,
-    'tetra': True,
     'aggregation': 'tetra',
     'var_type_mixed': ['real', 'int']
 }
 
 # run the GA and print its result
-print(f'Run GA with Tetra')
+print(f'Run GA with IMAP')
 ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, options=options)
-score_tetra, design_variables_tetra, _ = ga.run()
+score_IMAP, design_variables_IMAP, _ = ga.run()
 
-print(f'Optimal result for a distance of {round(design_variables_tetra[0], 2)} meters and '
-      f'{design_variables_tetra[1]} products')
+print(f'Optimal result for a distance of {round(design_variables_IMAP[0], 2)} meters and '
+      f'{design_variables_IMAP[1]} products')
 
 # make dictionary with parameter settings for the GA run with the minmax solver
 options = {
@@ -147,14 +144,13 @@ options = {
     'n_pop': 1000,
     'r_cross': 0.75,
     'max_stall': 15,
-    'tetra': False,
     'aggregation': 'minmax',
     'var_type_mixed': ['real', 'int']
 }
 
 # run the GA and print its result
 print(f'Initialize run with MinMax')
-ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, options=options, args=('minmax',))
+ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, options=options)
 score_minmax, design_variables_minmax, _ = ga.run()
 
 print(f'Optimal result for a distance of {round(design_variables_minmax[0], 2)} meters and '
@@ -178,7 +174,7 @@ x_fill = [100, 1000, 1000, 100]
 y_fill = [30_000, 30_000, 800, 800]
 
 ax.fill_between(x_fill, y_fill, color='#539ecd', label='Solution space')
-ax.scatter(design_variables_tetra[0], design_variables_tetra[1], label='Optimal solution Tetra', color='tab:purple')
+ax.scatter(design_variables_IMAP[0], design_variables_IMAP[1], label='Optimal solution IMAP', color='tab:purple')
 ax.scatter(design_variables_minmax[0], design_variables_minmax[1], label='Optimal solution MinMax', marker='*',
            color='tab:orange')
 
@@ -200,16 +196,16 @@ p1[m] = 0
 p2 = pchip_interpolate([0, 1.2, 2], [0, 100, 60], c2)
 
 # calculate individual preference scores for the results of the GA, to plot them on the preference curves
-temp_tetra = np.zeros((2, 2))  # workaround to fix problem with masking a float
-temp_tetra[0] = design_variables_tetra
+temp_IMAP = np.zeros((2, 2))  # workaround to fix problem with masking a float
+temp_IMAP[0] = design_variables_IMAP
 
-normalized_c1x1 = 1 - (design_variables_tetra[0] - 100) / (1000 - 100)
-normalized_c1x2 = (design_variables_tetra[1] - 800) / (30_000 - 800)
+normalized_c1x1 = 1 - (design_variables_IMAP[0] - 100) / (1000 - 100)
+normalized_c1x2 = (design_variables_IMAP[1] - 800) / (30_000 - 800)
 
-c2_res = design_variables_tetra[1] / (20_000 * design_variables_tetra[0] / 400)
+c2_res = design_variables_IMAP[1] / (20_000 * design_variables_IMAP[0] / 400)
 
-p1_res = objective_p1(temp_tetra[:, 0], temp_tetra[:, 1])[0]
-p2_res = objective_p2(design_variables_tetra[0], design_variables_tetra[1])
+p1_res = objective_p1(temp_IMAP[:, 0], temp_IMAP[:, 1])[0]
+p2_res = objective_p2(design_variables_IMAP[0], design_variables_IMAP[1])
 
 temp_minmax = np.zeros((2, 2))  # workaround to fix problem with masking a float
 temp_minmax[0] = design_variables_minmax
@@ -226,7 +222,7 @@ p2_res_mm = objective_p2(design_variables_minmax[0], design_variables_minmax[1])
 fig = plt.figure()
 ax2 = fig.add_subplot(1, 1, 1)
 ax2.plot(c2, p2, label='Preference curve')
-ax2.scatter(c2_res, p2_res, label='Optimal solution Tetra', color='tab:purple')
+ax2.scatter(c2_res, p2_res, label='Optimal solution IMAP', color='tab:purple')
 ax2.scatter(c2_res_mm, p2_res_mm, label='Optimal solution MinMax', marker='*', color='tab:orange')
 ax2.set(xlabel='Sustainability index', ylabel='Preference')
 ax2.set_title('Preference Curve Transport Sustainability & Wasted')
@@ -236,7 +232,7 @@ ax2.grid()
 fig = plt.figure()
 ax1 = fig.add_subplot(1, 1, 1, projection='3d')
 surf = ax1.plot_surface(N1, N2, p1, label='Preference curve')
-ax1.scatter(normalized_c1x1, normalized_c1x2, p1_res, label='Optimal solution Tetra', color='tab:purple')
+ax1.scatter(normalized_c1x1, normalized_c1x2, p1_res, label='Optimal solution IMAP', color='tab:purple')
 ax1.scatter(normalized_c1x1_mm, normalized_c1x2_mm, p1_res_mm, label='Optimal solution MinMax', marker='*',
             color='tab:orange')
 ax1.set(xlabel='Normalized travel distance', ylabel='Normalized items in assortiment', zlabel='Preference')
@@ -250,7 +246,7 @@ ax1.grid()
 fig = plt.figure()
 ax3 = fig.add_subplot(1, 1, 1)
 fig = ax3.imshow(p1, cmap='GnBu', interpolation='nearest')
-ax3.scatter(normalized_c1x1 * 100, normalized_c1x2 * 100, label='Optimal solution Tetra', color='tab:purple')
+ax3.scatter(normalized_c1x1 * 100, normalized_c1x2 * 100, label='Optimal solution IMAP', color='tab:purple')
 ax3.scatter(normalized_c1x1_mm * 100, normalized_c1x2_mm * 100, label='Optimal solution MinMax', marker='*',
             color='tab:orange')
 ax3.set(xlabel='Normalized travel distance', ylabel='Normalized items in assortiment')

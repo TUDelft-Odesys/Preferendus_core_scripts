@@ -1,6 +1,5 @@
 """Copyright (c) 2022. Harold Van Heukelum"""
 
-import pathlib
 from math import ceil
 
 import matplotlib.pyplot as plt
@@ -11,8 +10,6 @@ from scipy.interpolate import pchip_interpolate
 from scipy.optimize import fsolve
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-
-HERE = pathlib.Path(__file__).parent
 
 max_t = 3800
 n_anchors = 108

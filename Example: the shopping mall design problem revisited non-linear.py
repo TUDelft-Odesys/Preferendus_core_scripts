@@ -109,45 +109,44 @@ Now we have everything for the optimization, we can run it. For more information
 configure the GA, see the docstring of GeneticAlgorithm (via help()) or chapter 4 of the reader.
 """
 
-# make dictionary with parameter settings for the GA run with the Tetra solver
+# make dictionary with parameter settings for the GA run with the IMAP solver
 options = {
     'n_bits': 8,
     'n_iter': 400,
     'n_pop': 500,
     'r_cross': 0.8,
     'max_stall': 8,
-    'tetra': True,
     'aggregation': 'tetra',
     'var_type': 'real'
 }
 
 # run the GA and print its result
-print(f'Run GA with Tetra')
+print(f'Run GA with IMAP')
 ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, options=options)
-score_tetra, design_variables_tetra, _ = ga.run()
+score_IMAP, design_variables_IMAP, _ = ga.run()
 
-print(f'Optimal result for x1 = {round(design_variables_tetra[0], 2)}m2 and '
-      f'x2 = {round(design_variables_tetra[1], 2)}m2 (sum = {round(sum(design_variables_tetra))}m2)')
+print(f'Optimal result for x1 = {round(design_variables_IMAP[0], 2)}m2 and '
+      f'x2 = {round(design_variables_IMAP[1], 2)}m2 (sum = {round(sum(design_variables_IMAP))}m2)')
 
 """
 Now we have the results, we can make some figures. First, the resulting design variables are plotted into the solution 
 space. Secondly, we can plot the preference functions together with the results of the optimizations.
 """
 
-# create figure that shows the results in the solution space
+# create figure that shows the results in the design space
 fig, ax = plt.subplots(figsize=(7, 7))
 ax.set_xlim((-200, 9000))
 ax.set_ylim((0, 9000))
 ax.set_xlabel('x1 [m2]')
 ax.set_ylabel('x2 [m2]')
-ax.set_title('Solution space')
+ax.set_title('Design space')
 
-# define corner points of solution space
+# define corner points of design space
 x_fill = [0, 3000, 5000, 5000, 3000, 0]
 y_fill = [7000, 7000, 5000, 0, 0, 3000]
 
-ax.fill_between(x_fill, y_fill, color='#539ecd', label='Solution space')
-ax.scatter(design_variables_tetra[0], design_variables_tetra[1], color='tab:purple', label='Optimal solution Tetra')
+ax.fill_between(x_fill, y_fill, color='#539ecd', label='Design space')
+ax.scatter(design_variables_IMAP[0], design_variables_IMAP[1], color='tab:purple', label='Optimal solution IMAP')
 
 ax.grid()  # show grid
 fig.legend()  # show legend
@@ -163,20 +162,20 @@ p2 = pchip_interpolate([90000, 200000, 750000], [100, 30, 0], c2)
 p3 = pchip_interpolate([45000, 200000, 360000], [0, 80, 100], c3)
 
 # calculate individual preference scores for the results of the GA, to plot them on the preference curves
-c1_res = (160 * design_variables_tetra[0] + 80 * design_variables_tetra[1])
+c1_res = (160 * design_variables_IMAP[0] + 80 * design_variables_IMAP[1])
 p1_res = pchip_interpolate([240000, 450000, 1400000], [0, 65, 100], c1_res)
 
-c2_res = (120 * design_variables_tetra[0] + 30 * design_variables_tetra[1])
+c2_res = (120 * design_variables_IMAP[0] + 30 * design_variables_IMAP[1])
 p2_res = pchip_interpolate([90000, 200000, 750000], [100, 30, 0], c2_res)
 
-c3_res = (15 * design_variables_tetra[0] + 45 * design_variables_tetra[1])
+c3_res = (15 * design_variables_IMAP[0] + 45 * design_variables_IMAP[1])
 p3_res = pchip_interpolate([45000, 200000, 360000], [0, 80, 100], c3_res)
 
 # create figure that plots all preference curves and the preference scores of the returned results of the GA
 fig = plt.figure()
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(c1, p1, label='Preference curve')
-ax1.scatter(c1_res, p1_res, label='Optimal solution Tetra', color='tab:purple')
+ax1.scatter(c1_res, p1_res, label='Optimal solution IMAP', color='tab:purple')
 ax1.set_xlim((0, 1200000))
 ax1.set_ylim((0, 102))
 ax1.set_title('Profit')
@@ -188,7 +187,7 @@ ax1.legend()
 fig = plt.figure()
 ax2 = fig.add_subplot(1, 1, 1)
 ax2.plot(c2, p2, label='Preference curve')
-ax2.scatter(c2_res, p2_res, label='Optimal solution Tetra', color='tab:purple')
+ax2.scatter(c2_res, p2_res, label='Optimal solution IMAP', color='tab:purple')
 ax2.set_xlim((0, 750000))
 ax2.set_ylim((0, 102))
 ax2.set_title('CO2 Emission')
@@ -200,7 +199,7 @@ ax2.legend()
 fig = plt.figure()
 ax3 = fig.add_subplot(1, 1, 1)
 ax3.plot(c3, p3, label='Preference curve')
-ax3.scatter(c3_res, p3_res, label='Optimal solution Tetra', color='tab:purple')
+ax3.scatter(c3_res, p3_res, label='Optimal solution IMAP', color='tab:purple')
 ax3.set_xlim((0, 365000))
 ax3.set_ylim((0, 102))
 ax3.set_title('Shopping potential')

@@ -163,12 +163,11 @@ def objective_duration(x1, x2):
 def objective(variabels):
     """
     Objective function that is fed to the GA. Calles the separate preference functions that are declared above.
-    Objective can be used both with Tetra as with the minmax aggregation method. Declare which to use by the method
+    Objective can be used both with IMAP as with the minmax aggregation method. Declare which to use by the method
     argument.
 
     :param variabels: array with design variable values per member of the population. Can be split by using array
     slicing
-    :param method: which aggregation method to use: 'tetra' or 'minmax'. Defaults to 'tetra'
     :return: 1D-array with aggregated preference scores for the members of the population.
     """
     x1 = variabels[:, 0]  # which power system, bool (True = AC)
@@ -189,7 +188,7 @@ def objective(variabels):
 
 """
 Below, first the evaluation is done. The variable x_array below contains the coordinates for the corner points of the 
-solution space, ie. the points which are being evaluated. This array is then fed to the preference functions to 
+design space, ie. the points which are being evaluated. This array is then fed to the preference functions to 
 calculate the preference scores of the different alternatives per criteria/objective. These are then printed as a pandas
 DataFrame.
 
@@ -238,7 +237,7 @@ print()
 Below, the a priori optimization is performed. For this, we first need to define the bounds of the design variables. 
 There are no constraints.
 
-Two runs are made with the GA: the first with the Tetra solver, the second with the minmax solver. Both require a 
+Two runs are made with the GA: the first with the IMAP solver, the second with the minmax solver. Both require a 
 different configuration of the GA, so you will see two different dictionaries called 'options', one for each run. For 
 more information about the different options, see the docstring of GeneticAlgorithm (via help()) or chapter 4 of the 
 reader.
@@ -253,34 +252,33 @@ bounds = [[0, 1], [300, 600]]
 # specify the number of runs of the optimization
 n_runs = 2
 
-# run Tetra version
-print('Run Tetra')
+# run IMAP version
+print('Run IMAP')
 options = {  # make dictionary with parameter settings for the GA
     'n_bits': 20,
     'n_iter': 400,
     'n_pop': 150,
     'r_cross': 0.85,
     'max_stall': 10,
-    'tetra': True,
     'aggregation': 'tetra',
     'var_type_mixed': ['bool', 'real']
 }
 
-save_array_tetra = list()  # list to save the results from every run to
+save_array_IMAP = list()  # list to save the results from every run to
 ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options)
 
 # run the GA and print its result
 for i in range(n_runs):
     print(f'Initialize run {i + 1}')
-    score, design_variables_tetra, _ = ga.run()
+    score, design_variables_IMAP, _ = ga.run()
 
     print(
-        f"Optimal result for type = {'AC' if design_variables_tetra[0] else 'DC'}, length underground = "
-        f"{round(design_variables_tetra[1], 2)}km, and length overground = "
-        f"{LOA - round(design_variables_tetra[1], 2)}km")
+        f"Optimal result for type = {'AC' if design_variables_IMAP[0] else 'DC'}, length underground = "
+        f"{round(design_variables_IMAP[1], 2)}km, and length overground = "
+        f"{LOA - round(design_variables_IMAP[1], 2)}km")
     print()
 
-    save_array_tetra.append([design_variables_tetra[0], design_variables_tetra[1]])
+    save_array_IMAP.append([design_variables_IMAP[0], design_variables_IMAP[1]])
     print(f'Finished run {i + 1}')
 
 # run MinMax version
@@ -291,7 +289,6 @@ options = {  # make dictionary with parameter settings for the GA
     'n_pop': 250,
     'r_cross': 0.9,
     'max_stall': 10,
-    'tetra': False,
     'aggregation': 'minmax',
     'var_type_mixed': ['bool', 'real']
 }
@@ -317,23 +314,21 @@ Now we have the results, we can make some figures. First, the resulting design v
 space. Secondly, we can plot the preference functions together with the results of the optimizations.
 """
 
-# create figure that shows the results in the solution space
+# create figure that shows the results in the design space
 fig, ax = plt.subplots()
-ax.set_xlim((0, 800))
-ax.set_ylim((0, 800))
-ax.set_ylabel('Length overground cable [km]')
+ax.set_xlim((250, 650))
+ax.set_ylim((-1, 2))
+ax.set_yticks([0, 1])
+ax.set_ylabel('AC / DC')
 ax.set_xlabel('Length underground cable [km]')
-ax.set_title('Solution space')
+ax.set_title('Design space')
 
-# define corner points of solution space
-x_fill = [300, 600, 600, 300]
-y_fill = [400, 400, 100, 100]
-
-ax.fill_between(x_fill, y_fill, color='#539ecd', label='Solution space')
-ax.scatter(np.array(save_array_tetra)[:, 1], LOA - np.array(save_array_tetra)[:, 1], label='Optimal solution Tetra',
+ax.scatter(np.array(save_array_IMAP)[:, 1], np.array(save_array_IMAP)[:, 0], label='Optimal solution IMAP',
            color='tab:purple')
-ax.scatter(np.array(save_array_minmax)[:, 1], LOA - np.array(save_array_minmax)[:, 1], label='Optimal solution MinMax',
+ax.scatter(np.array(save_array_minmax)[:, 1], np.array(save_array_minmax)[:, 0], label='Optimal solution MinMax',
            marker='^', color='tab:orange')
+plt.hlines(y=1, xmin=300, xmax=600, label='Design space')
+plt.hlines(0, 300, 600)
 
 ax.grid()  # show grid
 ax.legend()  # show legend
@@ -349,11 +344,11 @@ p2 = pchip_interpolate(x_points_2, p_points_2, c2)
 p3 = pchip_interpolate(x_points_3, p_points_3, c3)
 
 # make numpy array of results, to allow for array splicing
-variable_t = np.array(save_array_tetra)
+variable_t = np.array(save_array_IMAP)
 variable_mm = np.array(save_array_minmax)
 
 # calculate individual preference scores for the results of the GA, to plot them on the preference curves
-# first for the results with Tetra
+# first for the results with IMAP
 c1_res_t = objective_costs(variable_t[:, 0], variable_t[:, 1])
 c2_res_t = objective_area(variable_t[:, 0], variable_t[:, 1])
 c3_res_t = objective_duration(variable_t[:, 0], variable_t[:, 1])
@@ -375,7 +370,7 @@ p3_res_mm = pchip_interpolate(x_points_3, p_points_3, c3_res_mm)
 fig = plt.figure()
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(c1, p1, label='Preference curve')
-ax1.scatter(c1_res_t, p1_res_t, label='Optimal solution Tetra', color='tab:purple')
+ax1.scatter(c1_res_t, p1_res_t, label='Optimal solution IMAP', color='tab:purple')
 ax1.scatter(c1_res_mm, p1_res_mm, label='Optimal solution MinMax', marker='^', color='tab:orange')
 ax1.set_ylim((0, 100))
 ax1.set_title('Costs')
@@ -387,7 +382,7 @@ ax1.legend()
 fig = plt.figure()
 ax2 = fig.add_subplot(1, 1, 1)
 ax2.plot(c2, p2, label='Preference curve')
-ax2.scatter(c2_res_t, p2_res_t, label='Optimal solution Tetra', color='tab:purple')
+ax2.scatter(c2_res_t, p2_res_t, label='Optimal solution IMAP', color='tab:purple')
 ax2.scatter(c2_res_mm, p2_res_mm, label='Optimal solution MinMax', marker='^', color='tab:orange')
 ax2.set_ylim((0, 100))
 ax2.set_title('Area')
@@ -399,7 +394,7 @@ ax2.legend()
 fig = plt.figure()
 ax3 = fig.add_subplot(1, 1, 1)
 ax3.plot(c3, p3, label='Preference curve')
-ax3.scatter(c3_res_t, p3_res_t, label='Optimal solution Tetra', color='tab:purple')
+ax3.scatter(c3_res_t, p3_res_t, label='Optimal solution IMAP', color='tab:purple')
 ax3.scatter(c3_res_mm, p3_res_mm, label='Optimal solution MinMax', marker='^', color='tab:orange')
 ax3.set_ylim((0, 100))
 ax3.set_title('Project duration')

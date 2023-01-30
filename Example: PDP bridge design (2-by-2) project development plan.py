@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
-from scipy.optimize import minimize
+from scipy.optimize import minimize, LinearConstraint, milp
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
-from scipy.optimize import LinearConstraint, milp
 
 from genetic_algorithm_pfm.tetra_pfm import TetraSolver
+from genetic_algorithm_pfm import GeneticAlgorithm
 
 solver = TetraSolver()
 
@@ -43,7 +43,7 @@ constraints = LinearConstraint(A, b_l, b_u)
 # the integrality array will tell the algorithm what type of variables (0 = continuous; 1 = integer) there are
 integrality = np.zeros_like(c_costs)
 
-"""Run the optimization"""
+# Run the optimization
 result1 = milp(c=c_costs, constraints=constraints, integrality=integrality)
 result2 = milp(c=c_wait_time, constraints=constraints, integrality=integrality)
 
@@ -90,9 +90,9 @@ print(f'Objective 1 is minimal for x1 = {result1.x[0]} and x2 = {result1.x[1]}. 
 print(f'Objective 2 is minimal for x1 = {result2.x[0]} and x2 = {result2.x[1]}. The wait time is then {result2.fun}.')
 print()
 
-# corner point evaluation with Tetra
-min_O1, max_O1 = 75, 228
-min_O2, max_O2 = 71.56, 91.12
+"""
+Below, all corner points are evaluated in Tetra
+"""
 
 
 def preference_P1(variables):
@@ -134,6 +134,11 @@ results[:, 2] = np.multiply(-1, ret)
 
 df = pd.DataFrame(np.round_(results, 2), columns=['x1', 'x2', 'Aggregated preference'])
 print(df.to_string())
+print()
+
+"""
+The graphical solution can also be plotted
+"""
 
 # plot graphical solution
 fig, ax = plt.subplots(figsize=(8, 6))
@@ -165,4 +170,38 @@ ax.scatter([3, 3, 8, 8], [1, 5, 1, 5], marker='*', color='red', label='corner po
 
 ax.legend()
 ax.grid()
+
+"""
+The optimisation above initially considers only the single stakeholders and evaluates only the corner points. However, 
+as you will in other examples, this is no guarantee that the optimal solution is found. Here, the optimal point is not 
+on any of the corners. To find the optimal solutions in these cases, a multi-objective optimisation is performed. 
+
+The same is showed below for the bridge problem, so you can see how the single-objective optimisations, the 
+multi-objective evaluation, and the multi-objective optimisation relate to each other.
+"""
+
+weights = [0.5, 0.5]
+
+
+def objective(variables):
+    p1 = preference_P1(variables)
+    p2 = preference_P2(variables)
+
+    return weights, [p1, p2]
+
+
+bounds = [[1, 5], [3, 8]]
+options = {
+    'aggregation': 'tetra',
+    'var_type_mixed': ['int', 'int']
+}
+
+# run the GA and print its result
+ga = GeneticAlgorithm(objective=objective, constraints=[], bounds=bounds, options=options)
+score, design_variables, _ = ga.run()
+
+print()
+print('Results multi-objective optimisation')
+print(f'x1 = {design_variables[0]} and x2 = {design_variables[1]}.')
+
 plt.show()

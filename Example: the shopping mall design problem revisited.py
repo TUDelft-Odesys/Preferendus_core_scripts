@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from genetic_algorithm_pfm import GeneticAlgorithm
-from weighted_minmax.aggregation_algorithm import aggregate_max
 
 """
 In this example we begin quite similar as in the previous examples by defining the objectives, constraints, and bounds.
@@ -56,15 +55,14 @@ def objective_p3(x1, x2):
     return (1 / 3150) * (15 * x1 + 45 * x2 - 45000)
 
 
-def objective(variables, method='tetra'):
+def objective(variables):
     """
     Objective function that is fed to the GA. Calles the separate preference functions that are declared above.
-    Objective can be used both with Tetra as with the minmax aggregation method. Declare which to use by the method
+    Objective can be used both with IMAP as with the minmax aggregation method. Declare which to use by the method
     argument.
 
     :param variables: array with design variable values per member of the population. Can be split by using array
     slicing
-    :param method: which aggregation method to use: 'tetra' or 'minmax'. Defaults to 'tetra'
     :return: 1D-array with aggregated preference scores for the members of the population.
     """
     # extract 1D design variable arrays from full 'variables' array
@@ -115,31 +113,30 @@ b2 = [0, 7000]  # x2
 bounds = [b1, b2]
 
 """
-Now we have everything for the optimization, we can run it. Two runs are made with the GA: the first with the Tetra 
+Now we have everything for the optimization, we can run it. Two runs are made with the GA: the first with the IMAP 
 solver, the second with the minmax solver. Both require a different configuration of the GA, so you will see two 
 different dictionaries called 'options', one for each run. For more information about the different options, see the 
 docstring of GeneticAlgorithm (via help()) or chapter 4 of the reader.
 """
 
-# make dictionary with parameter settings for the GA run with the Tetra solver
+# make dictionary with parameter settings for the GA run with the IMAP solver
 options = {
     'n_bits': 12,
     'n_iter': 400,
     'n_pop': 250,
     'r_cross': 0.9,
     'max_stall': 10,
-    'tetra': True,
     'aggregation': 'tetra',
     'var_type': 'real'
 }
 
 # run the GA and print its result
-print(f'Run GA with Tetra')
+print(f'Run GA with IMAP')
 ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, options=options)
-score_tetra, design_variables_tetra, _ = ga.run()
+score_IMAP, design_variables_IMAP, _ = ga.run()
 
-print(f'Optimal result for x1 = {round(design_variables_tetra[0], 2)}m2 and '
-      f'x2 = {round(design_variables_tetra[1], 2)}m2 (sum = {round(sum(design_variables_tetra))}m2)')
+print(f'Optimal result for x1 = {round(design_variables_IMAP[0], 2)}m2 and '
+      f'x2 = {round(design_variables_IMAP[1], 2)}m2 (sum = {round(sum(design_variables_IMAP))}m2)')
 
 # make dictionary with parameter settings for the GA run with the minmax solver
 options = {
@@ -148,14 +145,13 @@ options = {
     'n_pop': 450,
     'r_cross': 0.8,
     'max_stall': 15,
-    'tetra': False,
     'aggregation': 'minmax',
     'var_type': 'real'
 }
 
 # run the GA and print its result
 print(f'Initialize run with MinMax')
-ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, options=options, args=('minmax',))
+ga = GeneticAlgorithm(objective=objective, constraints=cons, bounds=bounds, options=options)
 score_minmax, design_variables_minmax, _ = ga.run()
 
 print(f'Optimal result for x1 = {round(design_variables_minmax[0], 2)}m2 and '
@@ -166,20 +162,20 @@ Now we have the results, we can make some figures. First, the resulting design v
 space. Secondly, we can plot the preference functions together with the results of the optimizations.
 """
 
-# create figure that shows the results in the solution space
+# create figure that shows the results in the design space
 fig, ax = plt.subplots(figsize=(7, 7))
 ax.set_xlim((0, 9000))
 ax.set_ylim((0, 9000))
 ax.set_xlabel('x1 [m2]')
 ax.set_ylabel('x2 [m2]')
-ax.set_title('Solution space')
+ax.set_title('Design space')
 
 # define corner points of solution space
 x_fill = [0, 3000, 5000, 5000, 3000, 0]
 y_fill = [7000, 7000, 5000, 0, 0, 3000]
 
-ax.fill_between(x_fill, y_fill, color='#539ecd', label='Solution space')
-ax.scatter(design_variables_tetra[0], design_variables_tetra[1], label='Optimal solution Tetra', color='tab:purple')
+ax.fill_between(x_fill, y_fill, color='#539ecd', label='Design space')
+ax.scatter(design_variables_IMAP[0], design_variables_IMAP[1], label='Optimal solution IMAP', color='tab:purple')
 ax.scatter(design_variables_minmax[0], design_variables_minmax[1], label='Optimal solution MinMax', color='tab:orange')
 
 ax.grid()  # show grid
@@ -196,13 +192,13 @@ p2 = 100 - (1 / 6600) * (c2 - 90000)
 p3 = (1 / 3150) * (c3 - 45000)
 
 # calculate individual preference scores for the results of the GA, to plot them on the preference curves
-c1_res = (160 * design_variables_tetra[0] + 80 * design_variables_tetra[1])
+c1_res = (160 * design_variables_IMAP[0] + 80 * design_variables_IMAP[1])
 p1_res = 1 / 9600 * (c1_res - 240000)
 
-c2_res = (120 * design_variables_tetra[0] + 30 * design_variables_tetra[1])
+c2_res = (120 * design_variables_IMAP[0] + 30 * design_variables_IMAP[1])
 p2_res = 100 - (1 / 6600) * (c2_res - 90000)
 
-c3_res = (15 * design_variables_tetra[0] + 45 * design_variables_tetra[1])
+c3_res = (15 * design_variables_IMAP[0] + 45 * design_variables_IMAP[1])
 p3_res = (1 / 3150) * (c3_res - 45000)
 
 c1_res_mm = (160 * design_variables_minmax[0] + 80 * design_variables_minmax[1])
@@ -218,7 +214,7 @@ p3_res_mm = (1 / 3150) * (c3_res_mm - 45000)
 fig = plt.figure()
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(c1, p1, label='Preference curve')
-ax1.scatter(c1_res, p1_res, label='Optimal solution Tetra', color='tab:purple')
+ax1.scatter(c1_res, p1_res, label='Optimal solution IMAP', color='tab:purple')
 ax1.scatter(c1_res_mm, p1_res_mm, label='Optimal solution MinMax', color='tab:orange')
 ax1.set_xlim((0, 1200000))
 ax1.set_ylim((0, 102))
@@ -231,7 +227,7 @@ ax1.legend()
 fig = plt.figure()
 ax2 = fig.add_subplot(1, 1, 1)
 ax2.plot(c2, p2, label='Preference curve')
-ax2.scatter(c2_res, p2_res, label='Optimal solution Tetra', color='tab:purple')
+ax2.scatter(c2_res, p2_res, label='Optimal solution IMAP', color='tab:purple')
 ax2.scatter(c2_res_mm, p2_res_mm, label='Optimal solution MinMax', color='tab:orange')
 ax2.set_xlim((0, 750000))
 ax2.set_ylim((0, 102))
@@ -244,7 +240,7 @@ ax2.legend()
 fig = plt.figure()
 ax3 = fig.add_subplot(1, 1, 1)
 ax3.plot(c3, p3, label='Preference curve')
-ax3.scatter(c3_res, p3_res, label='Optimal solution Tetra', color='tab:purple')
+ax3.scatter(c3_res, p3_res, label='Optimal solution IMAP', color='tab:purple')
 ax3.scatter(c3_res_mm, p3_res_mm, label='Optimal solution MinMax', color='tab:orange')
 ax3.set_xlim((0, 365000))
 ax3.set_ylim((0, 102))
