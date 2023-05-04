@@ -18,7 +18,7 @@ def objective_profit(variables):
     x2 = variables[1]
     x3 = variables[2]
 
-    floor_area = x1 * x2 * (x3 / 3)
+    floor_area = x1 * x2 
     facade_area = (x1 + x2) * 2 * x3
 
     revenues = floor_area * 55
