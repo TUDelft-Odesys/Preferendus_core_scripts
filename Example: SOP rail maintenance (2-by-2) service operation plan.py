@@ -1,3 +1,7 @@
+"""
+Python code for the railroad maintenance problem (Chapter 5.2 Example 3)
+"""
+
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
@@ -31,12 +35,14 @@ def objective_availability(x):
     return -1 * (a0 - c3 * x1 - c4 * x2)
 
 
-# run optimizations
+# define boundaries
 bounds = ((1, 52), (10, 100))
 
+# define constraints
 constraint_1 = {'type': 'ineq', 'fun': lambda x: c1 * x[0] + c2 * x[1] - tc_min}
 constraint_2 = {'type': 'ineq', 'fun': lambda x: a0 - c3 * x[0] - c4 * x[1] - av_min}
 
+# run optimizations
 result1 = minimize(objective_comfort, x0=np.array([1, 1]), bounds=bounds, constraints=constraint_1)
 result2 = minimize(objective_availability, x0=np.array([1, 1]), bounds=bounds, constraints=constraint_2)
 

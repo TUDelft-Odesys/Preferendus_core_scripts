@@ -1,3 +1,7 @@
+"""
+Python code for the bridge design problem (Chapter 5.2 Example 2)
+"""
+
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize, LinearConstraint, milp
@@ -10,14 +14,14 @@ from genetic_algorithm_pfm import GeneticAlgorithm
 solver = TetraSolver()
 
 # define constants
-c1 = 3
-c2 = 4
-c3 = 7
-c4 = 1.2
-c5 = 1.7
-c6 = 1.9
+c1 = 3  # costs per material
+c2 = 4  # material used per metre bridge span
+c3 = 7  # material used per metre air draft
+c4 = 1.2  # relation between waiting time and traffic flow
+c5 = 1.7  # traffic flow per metre bridge span
+c6 = 1.9  # traffic flow per metre air draft
 
-WT0 = 100
+WT0 = 100 # minimal waiting time
 
 """
 First we use MILP to solve the problem

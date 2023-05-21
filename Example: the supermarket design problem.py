@@ -1,5 +1,5 @@
 """
-Python code for the supermarket design problem example
+Python code for the supermarket design problem example (Chapter 7.3)
 """
 
 import matplotlib.pyplot as plt
@@ -115,7 +115,7 @@ bounds = [b1, b2]
 Now we have everything for the optimization, we can run it. Two runs are made with the GA: the first with the IMAP 
 solver, the second with the minmax solver. Both require a different configuration of the GA, so you will see two 
 different dictionaries called 'options', one for each run. For more information about the different options, see the 
-docstring of GeneticAlgorithm (via help()) or chapter 4 of the reader.
+docstring of GeneticAlgorithm (via help()) or appendix C of the reader.
 """
 
 # make dictionary with parameter settings for the GA run with the IMAP solver

@@ -1,3 +1,7 @@
+"""
+Python code for the building design problem (Chapter 5.2 Example 4)
+"""
+
 import numpy as np
 from scipy.optimize import minimize
 
@@ -38,6 +42,9 @@ def objective_energy_use(variables):
     energy_costs_per_m3 = 0.32
     return np.sqrt(x1 * x2 * x3 * energy_costs_per_m3)
 
+"""
+Before the optimisation the different constraints and bounds are specified
+"""
 
 def constraint_1(variables):
     """
@@ -65,6 +72,10 @@ b3 = (3, 12)  # x3
 bounds = (b1, b2, b3)
 
 cons = [{'type': 'ineq', 'fun': constraint_1}, {'type': 'ineq', 'fun': constraint_2}]
+
+"""
+Now, the two objectives are optimized separately
+"""
 
 # due to the non-linearity, it might be needed to increase the maximum number of iterations for minimize
 # see line 3-4 of this code block

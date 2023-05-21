@@ -1,16 +1,17 @@
 """
-Python code for the shopping mall design problem example
+Python code for the shopping mall design problem example (Chapter 7.2)
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 
 """
-In the first part of this script, the single objective optimization as shown in section 3.4.1 of the reader is shown. 
+In the first part of this script, the single objective optimization is shown. 
 First, the three objectives and two constraints are defined as python functions. Next, the boundaries for the design 
 variables x1 and x2 are defined, after which the optimizations can be done. The results of these optimizations are then 
-printed as a Pandas DataFrame. These DataFrames are showing the same as table 3 of the reader.
+printed as a Pandas DataFrame.
 
 Note that objective 1 and 3 need to be maximized, whereas objective 2 should be minimized. Hence, only for objective 1 
 and 3, the result is multiplied by -1.
@@ -108,10 +109,9 @@ print(df)
 print()
 
 """
-As discussed in section 3.4.2 of the reader, we can also express the optimization problem in preference functions. The 
-preference functions of this example are declared in the lines below. 
+The optimization problem can be expressed in preference functions.
+The preference functions of this example are declared in the lines below.
 """
-
 
 def objective_p1(variables):
     """

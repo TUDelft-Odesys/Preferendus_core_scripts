@@ -1,6 +1,7 @@
 """
-Python code for the shopping mall design problem revisited example
+Python code for the shopping mall design problem revisited example (Chapter 7.2)
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -8,12 +9,12 @@ from genetic_algorithm_pfm import GeneticAlgorithm
 
 """
 In this example we begin quite similar as in the previous examples by defining the objectives, constraints, and bounds.
-However, in this example we declare also another function called just 'objective'. This function will be the one 
-handeling the input from the GA, the aggregation of the preference scores, and returning these 
+However, in this example we declare also another function, called 'objective'. This function will be the one 
+handling the input from the GA, the aggregation of the preference scores, and returning these 
 aggregated scores back to the GA.
 
 For the aggregation, two methods can be used. The code for both is written in other files and can be imported into this 
-script. Same as for the GA and this is all done on line 9 to 11 of this script.
+script.
 
 Note that the GA is an minimization algorithm. However, we do not need to multiply any objectives with -1, since the 
 aggregation scripts will account for this themself.
@@ -77,6 +78,9 @@ def objective(variables):
     # aggregate preference scores and return this to the GA
     return [w1, w2, w3], [p_1, p_2, p_3]
 
+"""
+Before we can run the optimization, we finally need to define the constraints and bounds
+"""
 
 def constraint_1(variables):
     """
@@ -116,7 +120,7 @@ bounds = [b1, b2]
 Now we have everything for the optimization, we can run it. Two runs are made with the GA: the first with the IMAP 
 solver, the second with the minmax solver. Both require a different configuration of the GA, so you will see two 
 different dictionaries called 'options', one for each run. For more information about the different options, see the 
-docstring of GeneticAlgorithm (via help()) or chapter 4 of the reader.
+docstring of GeneticAlgorithm (via help()) or appendix C of the reader.
 """
 
 # make dictionary with parameter settings for the GA run with the IMAP solver

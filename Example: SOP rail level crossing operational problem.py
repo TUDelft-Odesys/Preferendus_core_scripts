@@ -1,5 +1,7 @@
 """
-Python code for the rail level crossing operational problem exemplar
+Python code for the rail level crossing operational problem example.
+
+For more detailed annotation, have a look at the exemplar of the rail level crossing operational problem.
 """
 
 import matplotlib.pyplot as plt

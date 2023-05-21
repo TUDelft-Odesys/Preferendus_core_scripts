@@ -1,5 +1,9 @@
 """Copyright (c) 2022. Harold Van Heukelum"""
 
+"""
+Python code for the floating wind project development exemplar (Chapter 8.5)
+"""
+
 from math import ceil
 
 import matplotlib.pyplot as plt
@@ -11,6 +15,13 @@ from scipy.optimize import fsolve
 
 from genetic_algorithm_pfm import GeneticAlgorithm
 
+"""
+Before starting the SODO and MODO some general variables and characteristics are set.
+Reference for the ship characteristics:
+https://www.oilandgasiq.com/drilling-and-development/articles/offshore-support-vessels-leading-emissions-reducti
+"""
+
+# Set constants for objective functions
 max_t = 3800
 n_anchors = 108
 
@@ -22,12 +33,12 @@ constants = {
     'W_concrete': 25,  # kN/m3
 }
 
-# https://www.oilandgasiq.com/drilling-and-development/articles/offshore-support-vessels-leading-emissions-reducti
+# Set charachteristics of the different ship types
 ship_options = {
     'OCV small': {
-        'day_rate': 47000,
-        'deck_space': 8,
-        'max_available': 3,
+        'day_rate': 47000,  # €/day
+        'deck_space': 8,  # max anchors on deck
+        'max_available': 3, # how many of this type are available for the project
         'CO2_emission': 30,  # tonnes per day
         'chance': 0.7
     },
@@ -49,45 +60,68 @@ ship_options = {
 
 soil_data = {
     'type': 'clay',
-    'su': 60,  # kPa
-    'a_i': 0.64,
+    'su': 60,  # kPa (Undrained shear strength)
+    'a_i': 0.64, # - (Coefficient of shaft friction)
     'a_o': 0.64,
-    'sat_weight': 9,  # kN/m3
+    'sat_weight': 9,  # kN/m3 (Submerged unit weight)
 }
 
 mooring_data = {
     'type': 'catenary',
     'line type': 'chain',
-    'd': 0.24,  # m
-    'mu': 0.25,  # -
-    'AWB': 2.5  # -
+    'd': 0.24,  # m (Nominal chain diameter)
+    'mu': 0.25,  # - (Coefficient of seabed friction)
+    'AWB': 2.5  # - (Active bearing area coefficient)
 }
 
-time_installation = 1
-time_bunkering = [1.5, 2, 2.5]
+# set variables for
+time_installation = 1  # time it takes to install one anchor
+time_bunkering = [1.5, 2, 2.5]  # time it takes to get a new set of anchors onboard
 
+"""
+Note the time objective function resulting in the overall project duration is implemented using a
+Discrete Event Simulation (DES). You are not required to understand the code of the objective_time function.
+It is annotated for further interest.
+"""
 
 def objective_time(ocv_s, ocv_l, barge):
-    """Function to calculate the project duration"""
+    """
+    Function to calculate the project duration
+
+    :param ocv_s: number of small offshore construction vessels
+    :param ocv_l: number of large offshore construction vessels
+    :param barge: number of barges
+    :return: overall project duration, ocv_s time, ocv_l time, barge time
+    """
+    # set empty list for respective vessel time
     t_array = list()
     t_ocv_s = list()
     t_ocv_l = list()
     t_barge = list()
 
+    # loop through all diffrent combinations of ships
     for ip in range(len(ocv_s)):
+
+        # initialize timers and counter
         inf_loop_prevent = 0
         time_ocv_s = 0
         time_ocv_l = 0
         time_barge = 0
         anchor_counter = 0
 
+        # define ship deck space option
         ds_ocv_s = ship_options['OCV small']['deck_space']
         ds_ocv_l = ship_options['OCV big']['deck_space']
         ds_barge = ship_options['Barge']['deck_space']
 
+        # iteration through installation process as long as number of anchor to install is smaller than
+        # the number of anchors available
         while n_anchors - anchor_counter > 0:
+
+            # check if ships are fully or only partially loaded
             if n_anchors - anchor_counter < ocv_s[ip] * ds_ocv_s + ocv_l[ip] * ds_ocv_l + barge[ip] * ds_barge:
-                n = ocv_s[ip] + ocv_l[ip] + barge[ip]
+                n = ocv_s[ip] + ocv_l[ip] + barge[ip]  # Number of vessels
+                # number of anchors left is number of remaining anchors divided by number of ships (oversimplification)
                 anchors_left_per_vessel = ceil((n_anchors - anchor_counter) / n)
                 diff_1 = 0
                 diff_2 = 0
@@ -95,10 +129,14 @@ def objective_time(ocv_s, ocv_l, barge):
                 ds_ocv_l = anchors_left_per_vessel
                 ds_barge = anchors_left_per_vessel
 
+                # distribute remaining number of anchors on ship starting with the OCV small
+                # if number of remaining anchors to store is smaller then the deck space of the OCV small
+                # are distributed on to the OCV big
                 if ds_ocv_s > ship_options['OCV small']['deck_space']:
                     diff_1 = ocv_s[ip] * (anchors_left_per_vessel - ship_options['OCV small']['deck_space'])
                     ds_ocv_s = ship_options['OCV small']['deck_space']
 
+                    # if the deck space of the OCV big is exceede the remaining anchors are stored on the barge
                     if ocv_l[ip] != 0:
                         if ds_ocv_l + diff_1 / ocv_l[ip] > ship_options['OCV big']['deck_space']:
                             diff_2 = ocv_l[ip] * (
@@ -112,9 +150,12 @@ def objective_time(ocv_s, ocv_l, barge):
                     else:
                         ds_barge = anchors_left_per_vessel + ceil(diff_1 / barge[ip])
 
+                # check that the number of anchors to be installed is equal to or greater than the number of anchors
+                # remaining to be installed
                 try:
                     assert ocv_s[ip] * ds_ocv_s + ocv_l[ip] * ds_ocv_l + barge[ip] * ds_barge >= \
                            (n_anchors - anchor_counter)
+                # if not the code will be stopped
                 except AssertionError as err:
                     print(ocv_s[ip], ocv_l[ip], barge[ip])
                     print(n_anchors - anchor_counter)
@@ -126,24 +167,30 @@ def objective_time(ocv_s, ocv_l, barge):
                     print(ds_barge)
                     raise err
 
+            #  increase respective ship time
             time_ocv_s += ocv_s[ip] * ds_ocv_s * time_installation
             time_ocv_l += ocv_l[ip] * ds_ocv_l * time_installation
             time_barge += barge[ip] * ds_barge * time_installation
 
+            # increase anchor counter to number of installed anchors
             anchor_counter += ocv_s[ip] * ship_options['OCV small']['deck_space'] + ocv_l[ip] * ship_options['OCV big'][
                 'deck_space'] + barge[ip] * ship_options['Barge']['deck_space']
 
             if n_anchors - anchor_counter <= 0:  # check if it is still the case after installation of last anchors
-                time_ocv_s += ocv_s[ip] * time_bunkering[0]
+                time_ocv_s += ocv_s[ip] * time_bunkering[0]  # add time to load new anchor
                 time_ocv_l += ocv_l[ip] * time_bunkering[1]
                 time_barge += barge[ip] * time_bunkering[2]
-            inf_loop_prevent += 1
+
+            inf_loop_prevent += 1  # preventing an infinite loop (if sum of ships is zero)
+
+            # if no anchors are installed, the while loop returns a high value for the timers and breaks the while loop
             if inf_loop_prevent > 20:
                 time_ocv_s += 1e4
                 time_ocv_l += 1e4
                 time_barge += 1e4
                 break
 
+        # time is added to overall list of alternatives
         t_ocv_s.append(time_ocv_s)
         t_ocv_l.append(time_ocv_l)
         t_barge.append(time_barge)
@@ -157,7 +204,7 @@ def objective_costs(diameter, length, t_ocv_s, t_ocv_l, t_barge):
 
     t = 0.02 * diameter
     mass_steel = (pi * length * diameter * t + pi / 4 * diameter ** 2 * t) * 7.85  # mT
-    production_costs_anchor = (mass_steel * 815 + 40000) * n_anchors
+    production_costs_anchor = (mass_steel * 815 + 40000) * n_anchors  # Calculate material cost
 
     costs_ocv_s = np.array(t_ocv_s) * ship_options['OCV small']['day_rate']
     costs_ocv_l = np.array(t_ocv_l) * ship_options['OCV big']['day_rate']
@@ -225,20 +272,24 @@ c2 = np.linspace(9_500_000, 17_000_000)
 c3 = np.linspace(0, 1)
 c4 = np.linspace(3_200, 10_200)
 
+# x_points: the outcomes of the objective for which a preference score is defined by the stakeholders
+# p_points: the corresponding preference scores
 x_points_1, p_points_1 = [[45, 80, 113], [100, 60, 0]]
 x_points_2, p_points_2 = [[9_500_000, 11_000_000, 17_000_000], [100, 20, 0]]
 x_points_3, p_points_3 = [[0, 0.6, 1], [100, 50, 0]]
 x_points_4, p_points_4 = [[3_200, 5_000, 10_200], [100, 40, 0]]
 
+# calculate the preference scores
 p1 = pchip_interpolate(x_points_1, p_points_1, c1)
 p2 = pchip_interpolate(x_points_2, p_points_2, c2)
 p3 = pchip_interpolate(x_points_3, p_points_3, c3)
 p4 = pchip_interpolate(x_points_4, p_points_4, c4)
 
-w1 = 0.30
-w2 = 0.35
-w3 = 0.15
-w4 = 0.20
+# set weights for the different objectives
+w1 = 0.30  # project duration
+w2 = 0.35  # cost
+w3 = 0.15  # fleet utilization
+w4 = 0.20  # sustainability
 
 
 def check_p_score(p):
@@ -253,24 +304,30 @@ def check_p_score(p):
 def objective(variables):
     """Objective function for the GA. Calculates all sub-objectives and their corresponding preference scores. The
     aggregation is done in the GA"""
-    n_ocv_s = variables[:, 0]
-    n_ocv_l = variables[:, 1]
-    n_barge = variables[:, 2]
-    diameter = variables[:, 3]
-    length = variables[:, 4]
+    n_ocv_s = variables[:, 0]  # number of small offshore construction vessels
+    n_ocv_l = variables[:, 1]  # number of large offshore construction vessels
+    n_barge = variables[:, 2]  # number of barges
+    diameter = variables[:, 3]  # anchor diameter
+    length = variables[:, 4]  # anchor length
 
     project_time, time_ocv_s, time_ocv_l, time_barge = objective_time(n_ocv_s, n_ocv_l, n_barge)
     costs = objective_costs(diameter, length, time_ocv_s, time_ocv_l, time_barge)
     fleet_util = objective_fleet_utilization(n_ocv_s, n_ocv_l, n_barge)
     co2_emission = objective_co2(n_ocv_s, n_ocv_l, n_barge, time_ocv_s, time_ocv_l, time_barge)
 
+    # calculate the preference scores including the check of the preference score
     p_1 = check_p_score(pchip_interpolate(x_points_1, p_points_1, project_time))
     p_2 = check_p_score(pchip_interpolate(x_points_2, p_points_2, costs))
     p_3 = check_p_score(pchip_interpolate(x_points_3, p_points_3, fleet_util))
     p_4 = check_p_score(pchip_interpolate(x_points_4, p_points_4, co2_emission))
 
+    # aggregate preference scores and return this to the GA
     return [w1, w2, w3, w4], [p_1, p_2, p_3, p_4]
 
+"""
+Before we can run the optimization, we finally need to define the constraints and bounds.
+You are not required to understand the code, so it is not annotated further.
+"""
 
 def constraint_1(variables):
     """Constraint that ensures there is at least one vessel on the project"""
@@ -357,6 +414,15 @@ bounds = [
 ]
 cons = [['ineq', constraint_1], ['ineq', constraint_2]]
 
+"""
+Below, the a priori optimization is performed. The optimization can be ran multiple times, so you can check the
+consistency between the runs. The outcomes might differ a bit, since the GA is stochastic from nature, but the
+differences should be limited. Besides the tetra solver both the SODO of the objective installation costs and the
+MODO min-max optimization are performed.
+
+Note that the other SODO on project time, fleet utilisation and co2 emissions cannot be included because in this
+example, these do not depend on the variables anchor length and anchor diameter.
+"""
 
 def print_results(res):
     """Function that prints the results of the optimizations"""

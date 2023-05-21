@@ -1,5 +1,5 @@
 """
-Python code for the computer production problem example
+Python code for the computer production problem example (Chapter 5.2 Example 1)
 """
 
 import matplotlib.pyplot as plt

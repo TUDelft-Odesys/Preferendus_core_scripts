@@ -1,5 +1,5 @@
 """
-Python code for the German high voltage power system line exemplar
+Python code for the German high voltage power system line exemplar (Chapter 8.3)
 """
 
 import numpy as np
@@ -13,8 +13,8 @@ from genetic_algorithm_pfm import GeneticAlgorithm
 from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
 """
-This script contains the code to run both the a posteriori evaluation as the a priori optimization of the German high 
-voltage power system ine example, described in chapter 5 of the reader.
+Since we are dealing with a binary design variable for the type of current, masks are used.
+For more information on masks refer to the supermarket design problem.
 """
 
 # Initialize TetraSolver
@@ -39,7 +39,6 @@ Part of the area objective is the noise of the power line. Below, the required d
 observer is calculated by using a solver from scipy, called fsolve. This solver will find the input variables for which 
 the returned value of the function is equal to 0.
 """
-
 
 def objective_noise(d, dc: bool):
     """
@@ -159,6 +158,12 @@ def objective_duration(x1, x2):
 
     return duration
 
+"""
+Before we can run the optimization, we finally need to define the last function, called 'objective'.
+This function will be the one handling the input from the GA, the aggregation of the preference scores, and returning
+these aggregated scores back to the GA. Note that the non-linear preference curves are created by using an interpolation
+function called pchip_interpolate. For more about this see the documentation of scipy. 
+"""
 
 def objective(variabels):
     """
@@ -192,8 +197,7 @@ design space, ie. the points which are being evaluated. This array is then fed t
 calculate the preference scores of the different alternatives per criteria/objective. These are then printed as a pandas
 DataFrame.
 
-Next, we can aggregate the different preference score per alternative, and print this too to the console. The printed 
-DataFrames should contain the same data as table 13 and 14 of the reader resp.
+Next, we can aggregate the different preference score per alternative, and print this too to the console.
 """
 
 # define array with coordinates of the corner points. Note that this only contains a boolean value for the used power
@@ -239,7 +243,7 @@ There are no constraints.
 
 Two runs are made with the GA: the first with the IMAP solver, the second with the minmax solver. Both require a 
 different configuration of the GA, so you will see two different dictionaries called 'options', one for each run. For 
-more information about the different options, see the docstring of GeneticAlgorithm (via help()) or chapter 4 of the 
+more information about the different options, see the docstring of GeneticAlgorithm (via help()) or appendix C of the 
 reader.
 
 The optimization can be ran multiple times, so you can check the consistency between the runs. The outcomes might differ

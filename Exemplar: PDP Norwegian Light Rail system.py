@@ -1,5 +1,5 @@
 """
-Python code for the Norwegian Light Rail system exemplar
+Python code for the Norwegian Light Rail system exemplar (Chapter 8.2)
 """
 
 import matplotlib.pyplot as plt
@@ -12,9 +12,6 @@ from genetic_algorithm_pfm import GeneticAlgorithm
 from genetic_algorithm_pfm.tetra_pfm import TetraSolver
 
 """
-This script contains the code to run both the a posteriori evaluation as the a priori optimization of the Bergen Light 
-Rail example, described in chapter 5 of the reader. 
-
 Let's begin with the definition of the solver, weights, and objectives.
 """
 

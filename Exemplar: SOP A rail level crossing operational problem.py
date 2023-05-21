@@ -1,5 +1,5 @@
 """
-Python code for the rail level crossing operational problem exemplar
+Python code for the rail level crossing operational problem exemplar (Chapter 8.4)
 """
 
 import matplotlib.pyplot as plt
@@ -14,6 +14,14 @@ import warnings
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+"""
+First the two constant design performance function about the force and acceleration need to be defined. This is done in 
+a simplified manner by interpolating discrete data. In this example, we use an interpolation function to go from the
+discrete data about the forces and accelerations to fully continuous functions. For this, we use the interp2d function 
+from Scipy, see their site for documentation about this function.
+
+The discrete data is given in the folder 'data'. It contains two .csv files, containing the 2d discrete data.
+"""
 
 def interpolate_data(data):
     """
@@ -32,6 +40,7 @@ def interpolate_data(data):
 data_force = np.loadtxt('data/Data_force_2d.csv', delimiter=';', encoding='utf-8-sig')
 data_acc = np.loadtxt('data/Data_acceleration_2d.csv', delimiter=';', encoding='utf-8-sig')
 
+# determine min and max force
 max_force = np.amax(data_force)
 min_force = np.amin(data_force)
 max_acc = np.amax(data_acc) + 0.01
@@ -40,6 +49,10 @@ min_acc = np.amin(data_acc) - 0.01
 # get interpolated functions for force and acceleration
 force_inter = interpolate_data(data_force)
 acc_inter = interpolate_data(data_acc)
+
+"""
+Next, set the weights, preference coordinates and objectives.
+"""
 
 # weights setting, weights can be adjusted between runs to check for outcome changes
 w1 = 0.4
@@ -56,9 +69,9 @@ x_points_3, p_points_3 = [[3_000, 7_000, 15_000], [100, 40, 0]]
 def objective_maintenance_costs(force, acc):
     """
     Function to calculate the maintenance costs"""
-    norm_force = (force - min_force) / (max_force - min_force)
-    norm_acc = (acc - min_acc) / (max_acc - min_acc)
-    agg = np.sqrt(norm_force ** 2 + norm_acc ** 2)
+    norm_force = (force - min_force) / (max_force - min_force)  # normalized force
+    norm_acc = (acc - min_acc) / (max_acc - min_acc)  # normalized acceleration
+    agg = np.sqrt(norm_force ** 2 + norm_acc ** 2)  # combined impact
     return agg * 15000
 
 

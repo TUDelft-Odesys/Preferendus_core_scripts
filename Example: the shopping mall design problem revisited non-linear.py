@@ -1,6 +1,7 @@
 """
-Python code for the shopping mall design problem revisited non-linear example
+Python code for the shopping mall design problem revisited non-linear example (Chapter 7.2)
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import pchip_interpolate
@@ -11,8 +12,7 @@ from genetic_algorithm_pfm import GeneticAlgorithm
 This script is fairly similar to the non-linear shopping mall example. Only the preference functions for objective 1 and
  2 are changed, together with the weights.
 
-Note that the non-linear preference curves are created by using an interpolation function called pchip_interpolation. 
-For more about this see chapter 4 of the reader and the documentation of scipy.
+Note that the non-linear preference curves are created by using an interpolation function called pchip_interpolation.
 """
 
 # set weights for the different objectives
@@ -71,6 +71,9 @@ def objective(variables):
     # aggregate preference scores and return this to the GA
     return [w1, w2, w3], [p_1, p_2, p_3]
 
+"""
+Before we can run the optimization, we finally need to define the constraints and bounds
+"""
 
 def constraint_1(variables):
     """Constraint that checks if the sum of the areas x1 and x2 is not higher than 10,000 m2.
