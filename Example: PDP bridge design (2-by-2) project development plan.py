@@ -112,7 +112,7 @@ def preference_P2(variables):
     x2 = variables[:, 1]
 
     wait_time = objective_wait_time([x1, x2])
-    return 465.849 - 5.11247 * wait_time
+    return 291.747 - 2.67953 * wait_time
 
 
 alternatives = np.array([
