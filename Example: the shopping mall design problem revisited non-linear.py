@@ -28,7 +28,7 @@ def objective_p1(x1, x2):
     :param x1: 1st design variable
     :param x2: 2nd design variable
     """
-    return pchip_interpolate([240000, 450000, 1400000], [0, 65, 100], (160 * x1 + 80 * x2))
+    return pchip_interpolate([240000, 450000, 1200000], [0, 65, 100], (160 * x1 + 80 * x2))
 
 
 def objective_p2(x1, x2):
