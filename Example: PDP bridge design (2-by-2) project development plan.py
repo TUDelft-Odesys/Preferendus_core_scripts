@@ -197,7 +197,11 @@ def objective(variables):
 bounds = [[1, 5], [3, 8]]
 options = {
     'aggregation': 'tetra',
-    'var_type_mixed': ['int', 'int']
+    "n_pop": 120,
+    "max_stall": 60,
+    "n_iter": 1000,
+    "n_bits": 8,
+    "r_cross": 0.9
 }
 
 # run the GA and print its result
