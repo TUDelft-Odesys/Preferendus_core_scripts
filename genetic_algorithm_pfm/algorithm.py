@@ -198,7 +198,7 @@ class GeneticAlgorithm:
         """
         scores_arr = np.array(scores)
         decoded_arr = np.array(decoded)
-        mask_too_low = scores_arr < -20.
+        mask_too_low = scores_arr < -40.
 
         if len(decoded_arr[mask_too_low]) > 1:
             w_masked, p_masked = self.objective(decoded_arr[mask_too_low], *self.args)
