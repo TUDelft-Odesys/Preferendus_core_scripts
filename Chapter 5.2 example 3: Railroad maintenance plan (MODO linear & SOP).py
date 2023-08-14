@@ -1,7 +1,3 @@
-"""
-Python code for the railroad maintenance problem (Chapter 5.2 Example 3)
-"""
-
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt

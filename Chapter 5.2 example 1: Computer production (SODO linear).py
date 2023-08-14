@@ -1,7 +1,3 @@
-"""
-Python code for the computer production problem example (Chapter 5.2 Example 1)
-"""
-
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Polygon
@@ -73,9 +69,9 @@ ax.plot(np.linspace(-1, 61, 100), -3 / 5 * np.linspace(-1, 61, 100) + 78, color=
 ax.plot(np.linspace(-1, 37, 100), -3 / 5 * np.linspace(-1, 37, 100) + 20, color="orange")
 ax.plot(np.linspace(-1, 61, 100), -3 / 5 * np.linspace(-1, 61, 100) + 50, color="orange")
 ax.arrow(-2, 30, 0, 40, width=0.05, head_width=1, head_length=2, color="orange")
-ax.text(52, 104, r"$1x_1 + 0x_2 \leq 50$", size=12)
-ax.text(52, 64, r"$0x_1 + 1x_2 \leq 60$", size=12)
-ax.text(12, 102, r"$1x_1 + 2x_2 \leq 120$", size=12)
+ax.text(52, 104, r"$x_2 \leq 50$", size=12)
+ax.text(52, 64, r"$x_1 \leq 60$", size=12)
+ax.text(10, 104, r"$x_1 + 2x_2 \leq 120$", size=12)
 ax.text(6, 20, r"$z = 300x_1 + 500x_2$", size=12)
 ax.text(15, 48, "solution space", size=12)
 

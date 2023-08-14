@@ -43,7 +43,7 @@ To run the GA, use `ga.run()`.
 
 # Contact
 
-For questions, suggestions, or remarks, you can contact me by harold.van.heukelum@boskalis.com.
+For questions, suggestions, or remarks, you can contact me by support@odesys.nl.
 
 # Closing remarks
 

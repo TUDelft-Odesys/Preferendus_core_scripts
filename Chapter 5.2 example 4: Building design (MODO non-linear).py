@@ -1,7 +1,3 @@
-"""
-Python code for the building design problem (Chapter 5.2 Example 4)
-"""
-
 import numpy as np
 from scipy.optimize import minimize
 

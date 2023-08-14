@@ -1,7 +1,3 @@
-"""
-Python code for the bridge design problem (Chapter 5.2 Example 2)
-"""
-
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize, LinearConstraint, milp
